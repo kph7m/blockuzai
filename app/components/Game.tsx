@@ -2,10 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+type GameState = 'playing' | 'paused' | 'gameOver' | 'cleared'
+
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [score, setScore] = useState(0)
   const [lives, setLives] = useState(3)
+  const [gameState, setGameState] = useState<GameState>('paused')
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -137,8 +140,8 @@ export default function Game() {
         setLives(gameLives)
 
         if (gameLives === 0) {
-          alert('ゲームオーバー！スコア: ' + gameScore)
-          window.location.reload()
+          gameStarted = false
+          setGameState('gameOver')
         } else {
           // ボールをリセット
           ball.x = canvas.width / 2
@@ -165,8 +168,8 @@ export default function Game() {
 
               // 全てのブロックが破壊されたか確認
               if (gameScore === brickInfo.rows * brickInfo.cols * 10) {
-                alert('おめでとう！クリア！')
-                window.location.reload()
+                gameStarted = false
+                setGameState('cleared')
               }
             }
           }
@@ -229,6 +232,13 @@ export default function Game() {
     }
   }, [])
 
+  const handleRestart = () => {
+    setScore(0)
+    setLives(3)
+    setGameState('paused')
+    window.location.reload()
+  }
+
   return (
     <div className="container">
       <h1>🎮 ブロック崩し 🎮</h1>
@@ -239,6 +249,38 @@ export default function Game() {
       <div className="controls">
         <p>← → キーでパドルを動かそう | スペースキーでスタート</p>
       </div>
+
+      {/* Game Over Dialog */}
+      {gameState === 'gameOver' && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>😢 ゲームオーバー</h2>
+            <p className="final-score">最終スコア: {score}</p>
+            <p className="message">もう一度挑戦しますか？</p>
+            <div className="button-group">
+              <button className="btn btn-primary" onClick={handleRestart}>
+                🔄 もう一度プレイ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Game Cleared Dialog */}
+      {gameState === 'cleared' && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>🎉 おめでとう！</h2>
+            <p className="final-score">最終スコア: {score}</p>
+            <p className="message">全てのブロックを破壊しました！</p>
+            <div className="button-group">
+              <button className="btn btn-primary" onClick={handleRestart}>
+                🔄 もう一度プレイ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
