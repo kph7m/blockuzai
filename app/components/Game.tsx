@@ -24,11 +24,10 @@ export default function Game() {
       const maxWidth = 800
       const windowWidth = window.innerWidth
       const windowHeight = window.innerHeight
-      // スコア表示(.info: ~60px) + スタートメッセージ(.start-message: ~60px) の合計余白
-      const VERTICAL_SPACING = 120
       
       let canvasWidth = maxWidth
-      let canvasHeight = windowHeight - VERTICAL_SPACING
+      // キャンバスの高さは画面全体の70%に設定
+      let canvasHeight = windowHeight * 0.7
       
       // スマホサイズの場合は画面に合わせる
       if (windowWidth < maxWidth + 40) {
@@ -101,10 +100,11 @@ export default function Game() {
       '#BB8FCE'  // 紫
     ]
 
-    // ブロックの高さの合計を計算して、キャンバスの70%に収める
+    // ブロックの高さの合計を計算して、キャンバスの70%を埋めるように配置
     const totalBlockHeight = brickInfo.rows * brickInfo.height
     const targetHeight = canvas.height * 0.7
-    const offsetY = (targetHeight - totalBlockHeight) / 2
+    // ブロックを上から配置（中央揃えをせずに上から詰める）
+    const offsetY = 0
 
     // ブロック配列を作成
     const bricks: { x: number; y: number; visible: boolean; color: string }[][] = []
