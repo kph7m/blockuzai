@@ -26,7 +26,7 @@ export default function Game() {
       const maxHeight = 600
       const windowWidth = window.innerWidth
       const windowHeight = window.innerHeight
-      const TOP_PADDING_OFFSET = 20 // 10px top padding + 10px bottom spacing
+      const TOP_PADDING_OFFSET = 20 // 10px top padding + 10px spacing buffer
       
       let canvasWidth = maxWidth
       let canvasHeight = maxHeight
