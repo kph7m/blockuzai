@@ -200,10 +200,10 @@
             bricks.forEach(row => {
                 row.forEach(brick => {
                     if (brick.visible) {
-                        if (ball.x > brick.x && 
-                            ball.x < brick.x + brickInfo.width && 
-                            ball.y > brick.y && 
-                            ball.y < brick.y + brickInfo.height) {
+                        if (ball.x + ball.radius > brick.x && 
+                            ball.x - ball.radius < brick.x + brickInfo.width && 
+                            ball.y + ball.radius > brick.y && 
+                            ball.y - ball.radius < brick.y + brickInfo.height) {
                             ball.dy *= -1;
                             brick.visible = false;
                             score += 10;
@@ -241,7 +241,7 @@
                 paddle.dx = paddle.speed;
             } else if (e.key === 'ArrowLeft' || e.key === 'Left') {
                 paddle.dx = -paddle.speed;
-            } else if (e.key === ' ' || e.key === 'Spacebar') {
+            } else if (e.key === ' ') {
                 gameStarted = true;
             }
         }
