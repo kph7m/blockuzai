@@ -91,7 +91,7 @@ export default function Game() {
       offsetX: 0,
       offsetY: 0,
       get width() { return (canvas.width / this.cols) * 1.0 }, // 横幅100%を埋める
-      get height() { return (canvas.width / this.cols) * 0.5 }, // 50%縮小
+      get height() { return (canvas.width / this.cols) * 0.5 }, // 高さは幅の50%
       // Canvasの縦70%を埋めるために必要な行数を計算
       get rows() { return Math.floor((canvas.height * BLOCKS_FILL_RATIO) / this.height) }
     }
