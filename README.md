@@ -1,4 +1,4 @@
-# blockuzai
+# blockuzai 🎯
 AIだけでブロック崩しできるかな
 
 ## 🚀 セットアップ
