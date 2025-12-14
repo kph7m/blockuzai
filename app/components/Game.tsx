@@ -81,6 +81,9 @@ export default function Game() {
       dy: -4 * scaleY
     }
 
+    // ブロックがCanvasの縦方向に占める割合
+    const BLOCKS_FILL_RATIO = 0.7
+    
     // ブロック
     const brickInfo = {
       cols: 15,
@@ -90,7 +93,7 @@ export default function Game() {
       get width() { return canvas.width / this.cols }, // 正方形にするために幅と高さを同じにする
       get height() { return canvas.width / this.cols },
       // Canvasの縦70%を埋めるために必要な行数を計算
-      get rows() { return Math.floor((canvas.height * 0.7) / this.height) }
+      get rows() { return Math.floor((canvas.height * BLOCKS_FILL_RATIO) / this.height) }
     }
 
     // 7色のカラーパレット
