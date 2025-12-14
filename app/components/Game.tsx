@@ -80,15 +80,14 @@ export default function Game() {
     }
 
     // ブロック
-    const brickSize = canvas.width / 15 // 正方形にするために幅と高さを同じにする
     const brickInfo = {
       rows: 10,
       cols: 15,
-      width: brickSize,
-      height: brickSize,
       padding: 0,
       offsetX: 0,
-      offsetY: 0
+      offsetY: 0,
+      get width() { return canvas.width / this.cols }, // 正方形にするために幅と高さを同じにする
+      get height() { return canvas.width / this.cols }
     }
 
     // ブロック配列を作成
