@@ -67,10 +67,11 @@ export default function Game() {
     }
 
     // ボール（パドルの上に配置）
+    const ballRadius = 8 * Math.min(scaleX, scaleY)
     const ball = {
       x: paddle.x + paddle.width / 2,
-      y: paddle.y - (8 * Math.min(scaleX, scaleY)),
-      radius: 8 * Math.min(scaleX, scaleY),
+      y: paddle.y - ballRadius,
+      radius: ballRadius,
       speed: 4 * Math.min(scaleX, scaleY),
       dx: 4 * scaleX,
       dy: -4 * scaleY
