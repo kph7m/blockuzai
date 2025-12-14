@@ -15,6 +15,9 @@ export default function Game() {
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
+    
+    // ゲーム開始フラグ（ローカル変数として管理）
+    let gameActive = false
 
     // レスポンシブなキャンバスサイズを設定
     function resizeCanvas() {
@@ -221,7 +224,7 @@ export default function Game() {
       drawBall()
       drawPaddle()
 
-      if (gameStarted) {
+      if (gameActive) {
         movePaddle()
         moveBall()
         checkBrickCollision()
@@ -247,8 +250,17 @@ export default function Game() {
       clampPaddlePosition()
     }
 
+    // ゲーム開始処理
+    function startGame() {
+      if (!gameActive) {
+        gameActive = true
+        setGameStarted(true)
+      }
+    }
+
     function handleTouchStart(e: TouchEvent) {
       e.preventDefault()
+      startGame()
       if (e.touches.length === 0) return
       const touch = e.touches[0]
       lastTouchX = touch.clientX
@@ -270,7 +282,13 @@ export default function Game() {
       lastTouchX = null
     }
 
+    // クリック/タップでゲーム開始
+    function handleCanvasClick() {
+      startGame()
+    }
+
     // イベントリスナー（ブラウザ全体でタッチ操作可能）
+    canvas.addEventListener('click', handleCanvasClick)
     document.addEventListener('touchstart', handleTouchStart, { passive: false })
     document.addEventListener('touchmove', handleTouchMove, { passive: false })
     document.addEventListener('touchend', handleTouchEnd, { passive: false })
@@ -289,17 +307,14 @@ export default function Game() {
 
     // クリーンアップ
     return () => {
+      canvas.removeEventListener('click', handleCanvasClick)
       document.removeEventListener('touchstart', handleTouchStart)
       document.removeEventListener('touchmove', handleTouchMove)
       document.removeEventListener('touchend', handleTouchEnd)
       window.removeEventListener('resize', resizeCanvas)
       cancelAnimationFrame(animationFrameId)
     }
-  }, [gameStarted])
-
-  const handleStartGame = () => {
-    setGameStarted(true)
-  }
+  }, [])
 
   return (
     <div className="container" ref={containerRef}>
@@ -309,9 +324,9 @@ export default function Game() {
         <p>スコア: <span id="score">{score}</span> | ライフ: <span id="lives">{lives}</span></p>
       </div>
       {!gameStarted && (
-        <button className="start-button" onClick={handleStartGame}>
-          ゲームスタート
-        </button>
+        <div className="start-message">
+          <p>画面をタップしてゲームスタート！</p>
+        </div>
       )}
       <div className="controls">
         <p>画面のどこでもスワイプしてパドルを操作できます</p>

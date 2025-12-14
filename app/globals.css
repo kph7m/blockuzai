@@ -45,29 +45,21 @@ canvas {
   font-size: clamp(1rem, 3vw, 1.125rem);
 }
 
-.start-button {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  color: #333;
-  border: none;
-  padding: 15px 40px;
+.start-message {
+  color: #43e97b;
   font-size: clamp(1rem, 4vw, 1.25rem);
   font-weight: bold;
-  border-radius: 50px;
-  cursor: pointer;
   margin: 20px auto;
-  display: block;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  transition: transform 0.2s, box-shadow 0.2s;
+  padding: 15px 40px;
+  background: rgba(67, 233, 123, 0.2);
+  border: 2px solid #43e97b;
+  border-radius: 50px;
+  animation: pulse 2s infinite;
 }
 
-.start-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-}
-
-.start-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 .controls {
@@ -111,7 +103,7 @@ canvas {
     margin-top: 15px;
   }
   
-  .start-button {
+  .start-message {
     padding: 12px 30px;
     margin: 15px auto;
   }
