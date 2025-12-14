@@ -120,6 +120,9 @@ export default function Game() {
       }
     }
 
+    // 残りのブロック数を追跡（パフォーマンス向上のため）
+    let remainingBricks = brickInfo.rows * brickInfo.cols
+
     // パドルを描画
     function drawPaddle() {
       if (!ctx) return
@@ -209,12 +212,10 @@ export default function Game() {
                 ball.y - ball.radius < brick.y + brickInfo.height) {
               ball.dy *= -1
               brick.visible = false
+              remainingBricks--
 
               // 全てのブロックが破壊されたか確認
-              const allBricksDestroyed = bricks.every(row => 
-                row.every(brick => !brick.visible)
-              )
-              if (allBricksDestroyed) {
+              if (remainingBricks === 0) {
                 alert('おめでとう！クリア！')
                 window.location.reload()
               }
