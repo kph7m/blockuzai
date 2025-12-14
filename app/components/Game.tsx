@@ -18,6 +18,9 @@ export default function Game() {
     // ゲーム開始フラグ（ローカル変数として管理）
     let gameActive = true
 
+    // キャンバスの高さの割合（画面全体の70%）
+    const CANVAS_HEIGHT_RATIO = 0.7
+
     // レスポンシブなキャンバスサイズを設定
     function resizeCanvas() {
       if (!canvas) return
@@ -27,7 +30,7 @@ export default function Game() {
       
       let canvasWidth = maxWidth
       // キャンバスの高さは画面全体の70%に設定
-      let canvasHeight = windowHeight * 0.7
+      let canvasHeight = windowHeight * CANVAS_HEIGHT_RATIO
       
       // スマホサイズの場合は画面に合わせる
       if (windowWidth < maxWidth + 40) {
