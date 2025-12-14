@@ -86,12 +86,12 @@ export default function Game() {
     
     // ブロック
     const brickInfo = {
-      cols: 15,
+      cols: 30, // 列数を2倍にしてブロックサイズを維持したまま横幅100%を埋める
       padding: 0,
       offsetX: 0,
       offsetY: 0,
-      get width() { return (canvas.width / this.cols) * 0.5 }, // 正方形にするために幅と高さを同じにする（50%縮小）
-      get height() { return (canvas.width / this.cols) * 0.5 }, // 50%縮小
+      get width() { return canvas.width / this.cols }, // 正方形にするために幅と高さを同じにする
+      get height() { return canvas.width / this.cols }, // 横幅に合わせて正方形を維持
       // Canvasの縦70%を埋めるために必要な行数を計算
       get rows() { return Math.floor((canvas.height * BLOCKS_FILL_RATIO) / this.height) }
     }
