@@ -248,6 +248,19 @@ export default function Game() {
     // タッチ・マウス入力（モバイル対応）
     let touchX: number | null = null
 
+    // パドルを指定位置に移動（境界チェック付き）
+    function movePaddleToPosition(canvasX: number) {
+      if (!canvas) return
+      
+      paddle.x = canvasX - paddle.width / 2
+      
+      // 壁の衝突判定
+      if (paddle.x < 0) paddle.x = 0
+      if (paddle.x + paddle.width > canvas.width) {
+        paddle.x = canvas.width - paddle.width
+      }
+    }
+
     function handleTouchStart(e: TouchEvent) {
       e.preventDefault()
       if (!canvas || e.touches.length === 0) return
@@ -257,13 +270,7 @@ export default function Game() {
       const touchCanvasX = touch.clientX - rect.left
       
       // パドルをタッチ位置に移動（タップでも移動）
-      paddle.x = touchCanvasX - paddle.width / 2
-      
-      // 壁の衝突判定
-      if (paddle.x < 0) paddle.x = 0
-      if (paddle.x + paddle.width > canvas.width) {
-        paddle.x = canvas.width - paddle.width
-      }
+      movePaddleToPosition(touchCanvasX)
       
       touchX = touch.clientX
     }
@@ -277,13 +284,7 @@ export default function Game() {
       const touchCanvasX = touch.clientX - rect.left
       
       // パドルをタッチ位置に移動
-      paddle.x = touchCanvasX - paddle.width / 2
-      
-      // 壁の衝突判定
-      if (paddle.x < 0) paddle.x = 0
-      if (paddle.x + paddle.width > canvas.width) {
-        paddle.x = canvas.width - paddle.width
-      }
+      movePaddleToPosition(touchCanvasX)
     }
 
     function handleTouchEnd(e: TouchEvent) {
@@ -299,13 +300,7 @@ export default function Game() {
       const mouseCanvasX = e.clientX - rect.left
       
       // パドルをクリック位置に移動
-      paddle.x = mouseCanvasX - paddle.width / 2
-      
-      // 壁の衝突判定
-      if (paddle.x < 0) paddle.x = 0
-      if (paddle.x + paddle.width > canvas.width) {
-        paddle.x = canvas.width - paddle.width
-      }
+      movePaddleToPosition(mouseCanvasX)
     }
 
     // イベントリスナー
