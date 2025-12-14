@@ -246,7 +246,7 @@ export default function Game() {
     }
 
     // タッチ・マウス入力（モバイル対応）
-    let touchX: number | null = null
+    const DRAG_ZONE_THRESHOLD = 0.7 // 画面下部70%がドラッグゾーン
     let lastTouchX: number | null = null
     let isDragging = false
 
@@ -279,7 +279,7 @@ export default function Game() {
       const paddleCenterX = paddle.x + paddle.width / 2
       const distanceFromPaddle = Math.abs(canvasX - paddleCenterX)
       // パドル付近または画面下部の場合はドラッグモード
-      return distanceFromPaddle < paddle.width || clientY > rect.top + canvas.height * 0.7
+      return distanceFromPaddle < paddle.width || clientY > rect.top + canvas.height * DRAG_ZONE_THRESHOLD
     }
 
     function handleTouchStart(e: TouchEvent) {
@@ -298,8 +298,6 @@ export default function Game() {
         movePaddleToPosition(touchCanvasX)
         isDragging = false
       }
-      
-      touchX = touch.clientX
     }
 
     function handleTouchMove(e: TouchEvent) {
@@ -323,7 +321,6 @@ export default function Game() {
 
     function handleTouchEnd(e: TouchEvent) {
       e.preventDefault()
-      touchX = null
       lastTouchX = null
       isDragging = false
     }
@@ -341,9 +338,6 @@ export default function Game() {
       if (shouldEnterDragMode(mouseCanvasX, e.clientY, rect)) {
         isMouseDragging = true
         lastMouseX = e.clientX
-        // ドラッグ開始時にのみイベントリスナーを追加
-        document.addEventListener('mousemove', handleMouseMove)
-        document.addEventListener('mouseup', handleMouseUp)
       } else {
         // それ以外はクリックで移動
         movePaddleToPosition(mouseCanvasX)
@@ -362,9 +356,6 @@ export default function Game() {
     function handleMouseUp(e: MouseEvent) {
       isMouseDragging = false
       lastMouseX = null
-      // ドラッグ終了時にイベントリスナーを削除
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
     }
 
     // イベントリスナー
@@ -374,6 +365,8 @@ export default function Game() {
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false })
     canvas.addEventListener('touchend', handleTouchEnd, { passive: false })
     canvas.addEventListener('mousedown', handleMouseDown)
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
 
     // ゲームループ
     let animationFrameId: number
@@ -395,7 +388,6 @@ export default function Game() {
       canvas.removeEventListener('touchmove', handleTouchMove)
       canvas.removeEventListener('touchend', handleTouchEnd)
       canvas.removeEventListener('mousedown', handleMouseDown)
-      // ドラッグ中の場合は念のためクリーンアップ
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
       window.removeEventListener('resize', resizeCanvas)
