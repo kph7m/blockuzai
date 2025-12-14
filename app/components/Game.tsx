@@ -83,13 +83,14 @@ export default function Game() {
 
     // ブロック
     const brickInfo = {
-      rows: 5,
       cols: 15,
       padding: 0,
       offsetX: 0,
       offsetY: 0,
       get width() { return canvas.width / this.cols }, // 正方形にするために幅と高さを同じにする
-      get height() { return canvas.width / this.cols }
+      get height() { return canvas.width / this.cols },
+      // Canvasの縦70%を埋めるために必要な行数を計算
+      get rows() { return Math.floor((canvas.height * 0.7) / this.height) }
     }
 
     // 7色のカラーパレット
