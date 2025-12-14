@@ -23,24 +23,22 @@ export default function Game() {
     function resizeCanvas() {
       if (!canvas) return
       const maxWidth = 800
-      const maxHeight = 600
       const windowWidth = window.innerWidth
       const windowHeight = window.innerHeight
-      const TOP_PADDING_OFFSET = 20 // 10px top padding + 10px spacing buffer
+      // スコア表示(.info: ~60px) + スタートメッセージ(.start-message: ~60px) の合計余白
+      const VERTICAL_SPACING = 120
       
       let canvasWidth = maxWidth
-      let canvasHeight = maxHeight
+      let canvasHeight = windowHeight - VERTICAL_SPACING
       
       // スマホサイズの場合は画面に合わせる
       if (windowWidth < maxWidth + 40) {
         canvasWidth = windowWidth - 40
-        canvasHeight = (canvasWidth / maxWidth) * maxHeight
       }
       
-      // 高さも確認（10pxのtop paddingを考慮）
-      if (canvasHeight > windowHeight - TOP_PADDING_OFFSET) {
-        canvasHeight = windowHeight - TOP_PADDING_OFFSET
-        canvasWidth = (canvasHeight / maxHeight) * maxWidth
+      // 最小高さを確保
+      if (canvasHeight < 400) {
+        canvasHeight = 400
       }
       
       canvas.width = canvasWidth
@@ -56,9 +54,10 @@ export default function Game() {
     let gameScore = 0
     let gameLives = 3
 
-    // スケール係数（基準サイズ800x600に対する比率）
+    // スケール係数（基準サイズ800に対する横幅の比率）
+    // 縦方向は動的な高さに応じて要素を配置するため、横幅のスケールを使用
     const scaleX = canvas.width / 800
-    const scaleY = canvas.height / 600
+    const scaleY = scaleX // 縦横同じスケールを使用してアスペクト比を維持
 
     // パドル
     const paddle = {

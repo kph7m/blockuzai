@@ -8,14 +8,19 @@ body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   font-family: 'Arial', sans-serif;
   overflow-x: hidden;
+  min-height: 100vh;
 }
 
 .container {
   text-align: center;
-  padding-top: 10px;
+  padding-top: 0;
   padding-left: 20px;
   padding-right: 20px;
   max-width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 canvas {
@@ -56,7 +61,7 @@ canvas {
 /* モバイル向けの追加スタイル */
 @media (max-width: 768px) {
   .container {
-    padding-top: 10px;
+    padding-top: 0;
     padding-left: 10px;
     padding-right: 10px;
   }
