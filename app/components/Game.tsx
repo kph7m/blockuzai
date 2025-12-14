@@ -25,7 +25,8 @@ export default function Game() {
       const maxWidth = 800
       const windowWidth = window.innerWidth
       const windowHeight = window.innerHeight
-      const VERTICAL_SPACING = 120 // スコア表示とメッセージ用の余白
+      // スコア表示(.info: ~60px) + スタートメッセージ(.start-message: ~60px) の合計余白
+      const VERTICAL_SPACING = 120
       
       let canvasWidth = maxWidth
       let canvasHeight = windowHeight - VERTICAL_SPACING
@@ -53,9 +54,10 @@ export default function Game() {
     let gameScore = 0
     let gameLives = 3
 
-    // スケール係数（基準サイズ800x600に対する比率）
+    // スケール係数（基準サイズ800に対する横幅の比率）
+    // 縦方向は動的な高さに応じて要素を配置するため、横幅のスケールを使用
     const scaleX = canvas.width / 800
-    const scaleY = canvas.height / 600
+    const scaleY = scaleX // 縦横同じスケールを使用してアスペクト比を維持
 
     // パドル
     const paddle = {
