@@ -80,10 +80,10 @@ export default function Game() {
     const brickInfo = {
       rows: 5,
       cols: 9,
-      width: 80 * scaleX,
-      height: 25 * scaleY,
-      padding: 10 * scaleX,
-      offsetX: 35 * scaleX,
+      width: 72 * scaleX,
+      height: 30 * scaleY,
+      padding: 12 * scaleX,
+      offsetX: 30 * scaleX,
       offsetY: 60 * scaleY
     }
 
