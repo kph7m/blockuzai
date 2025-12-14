@@ -248,11 +248,31 @@ export default function Game() {
     // タッチ・マウス入力（モバイル対応）
     let touchX: number | null = null
 
+    // パドルを指定位置に移動（境界チェック付き）
+    function movePaddleToPosition(canvasX: number) {
+      if (!canvas) return
+      
+      paddle.x = canvasX - paddle.width / 2
+      
+      // 壁の衝突判定
+      if (paddle.x < 0) paddle.x = 0
+      if (paddle.x + paddle.width > canvas.width) {
+        paddle.x = canvas.width - paddle.width
+      }
+    }
+
     function handleTouchStart(e: TouchEvent) {
       e.preventDefault()
-      if (e.touches.length > 0) {
-        touchX = e.touches[0].clientX
-      }
+      if (!canvas || e.touches.length === 0) return
+      
+      const touch = e.touches[0]
+      const rect = canvas.getBoundingClientRect()
+      const touchCanvasX = touch.clientX - rect.left
+      
+      // パドルをタッチ位置に移動（タップでも移動）
+      movePaddleToPosition(touchCanvasX)
+      
+      touchX = touch.clientX
     }
 
     function handleTouchMove(e: TouchEvent) {
@@ -264,18 +284,23 @@ export default function Game() {
       const touchCanvasX = touch.clientX - rect.left
       
       // パドルをタッチ位置に移動
-      paddle.x = touchCanvasX - paddle.width / 2
-      
-      // 壁の衝突判定
-      if (paddle.x < 0) paddle.x = 0
-      if (paddle.x + paddle.width > canvas.width) {
-        paddle.x = canvas.width - paddle.width
-      }
+      movePaddleToPosition(touchCanvasX)
     }
 
     function handleTouchEnd(e: TouchEvent) {
       e.preventDefault()
       touchX = null
+    }
+
+    // マウスクリック入力（デスクトップ対応）
+    function handleMouseDown(e: MouseEvent) {
+      if (!canvas) return
+      
+      const rect = canvas.getBoundingClientRect()
+      const mouseCanvasX = e.clientX - rect.left
+      
+      // パドルをクリック位置に移動
+      movePaddleToPosition(mouseCanvasX)
     }
 
     // イベントリスナー
@@ -284,6 +309,7 @@ export default function Game() {
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false })
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false })
     canvas.addEventListener('touchend', handleTouchEnd, { passive: false })
+    canvas.addEventListener('mousedown', handleMouseDown)
 
     // ゲームループ
     let animationFrameId: number
@@ -304,6 +330,7 @@ export default function Game() {
       canvas.removeEventListener('touchstart', handleTouchStart)
       canvas.removeEventListener('touchmove', handleTouchMove)
       canvas.removeEventListener('touchend', handleTouchEnd)
+      canvas.removeEventListener('mousedown', handleMouseDown)
       window.removeEventListener('resize', resizeCanvas)
       cancelAnimationFrame(animationFrameId)
     }
@@ -326,8 +353,8 @@ export default function Game() {
         </button>
       )}
       <div className="controls">
-        <p>PC: ← → キーでパドル移動 | スペースでスタート</p>
-        <p>スマホ: 画面タッチでパドル移動 | ボタンでスタート</p>
+        <p>PC: ← → キーまたは画面クリックでパドル移動 | スペースでスタート</p>
+        <p>スマホ: 画面タップでパドル移動 | ボタンでスタート</p>
       </div>
     </div>
   )
