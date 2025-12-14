@@ -86,7 +86,7 @@ export default function GameCanvas() {
           }
         )
 
-        const newScore = checkBrickCollision(
+        checkBrickCollision(
           state.ball,
           state.bricks,
           state.brickInfo,
@@ -96,8 +96,6 @@ export default function GameCanvas() {
           },
           state.score
         )
-
-        state.score = newScore
 
         // Check if game is cleared
         if (isGameCleared(state.brickInfo, state.score)) {
