@@ -33,3 +33,16 @@ npm run build
 - Next.js 14 (SSG)
 - React 18
 - TypeScript
+
+## 🚢 デプロイ
+
+このプロジェクトは、`main` ブランチにマージされると自動的にFirebase Hostingにデプロイされます。
+
+### Firebase Hostingの設定
+
+1. Firebaseプロジェクトのサービスアカウントキーを取得
+2. GitHubリポジトリの Settings > Secrets and variables > Actions に移動
+3. `FIREBASE_SERVICE_ACCOUNT_BLOCKUZAI` という名前で新しいシークレットを追加
+4. サービスアカウントのJSONキーの内容を貼り付ける
+
+デプロイワークフローは `.github/workflows/firebase-hosting-merge.yml` で定義されています。
