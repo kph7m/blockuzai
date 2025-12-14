@@ -101,16 +101,16 @@ export default function Game() {
       '#BB8FCE'  // 紫
     ]
 
+    // ブロックの高さの合計を計算して、キャンバスの70%に収める
+    const totalBlockHeight = brickInfo.rows * brickInfo.height
+    const targetHeight = canvas.height * 0.7
+    const offsetY = (targetHeight - totalBlockHeight) / 2
+
     // ブロック配列を作成
     const bricks: { x: number; y: number; visible: boolean; color: string }[][] = []
     for (let row = 0; row < brickInfo.rows; row++) {
       bricks[row] = []
       for (let col = 0; col < brickInfo.cols; col++) {
-        // ブロックの高さの合計を計算して、キャンバスの70%に収める
-        const totalBlockHeight = brickInfo.rows * brickInfo.height
-        const targetHeight = canvas.height * 0.7
-        const offsetY = (targetHeight - totalBlockHeight) / 2
-        
         bricks[row][col] = {
           x: col * (brickInfo.width + brickInfo.padding) + brickInfo.offsetX,
           y: row * (brickInfo.height + brickInfo.padding) + offsetY,
