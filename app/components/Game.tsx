@@ -66,10 +66,10 @@ export default function Game() {
       dx: 0
     }
 
-    // ボール
+    // ボール（パドルの上に配置）
     const ball = {
-      x: canvas.width / 2,
-      y: canvas.height / 2,
+      x: paddle.x + paddle.width / 2,
+      y: paddle.y - (8 * Math.min(scaleX, scaleY)),
       radius: 8 * Math.min(scaleX, scaleY),
       speed: 4 * Math.min(scaleX, scaleY),
       dx: 4 * scaleX,
@@ -177,9 +177,9 @@ export default function Game() {
           alert('ゲームオーバー！スコア: ' + gameScore)
           window.location.reload()
         } else {
-          // ボールをリセット
-          ball.x = canvas.width / 2
-          ball.y = canvas.height / 2
+          // ボールをリセット（パドルの上に配置）
+          ball.x = paddle.x + paddle.width / 2
+          ball.y = paddle.y - ball.radius
           ball.dx = 4 * scaleX
           ball.dy = -4 * scaleY
         }
@@ -227,28 +227,8 @@ export default function Game() {
       }
     }
 
-    // キーボード入力
-    function keyDown(e: KeyboardEvent) {
-      if (e.key === 'ArrowRight' || e.key === 'Right') {
-        paddle.dx = paddle.speed
-      } else if (e.key === 'ArrowLeft' || e.key === 'Left') {
-        paddle.dx = -paddle.speed
-      } else if (e.key === ' ') {
-        setGameStarted(true)
-      }
-    }
-
-    function keyUp(e: KeyboardEvent) {
-      if (e.key === 'ArrowRight' || e.key === 'Right' || 
-          e.key === 'ArrowLeft' || e.key === 'Left') {
-        paddle.dx = 0
-      }
-    }
-
-    // タッチ・マウス入力（モバイル対応）
-    const DRAG_ZONE_THRESHOLD = 0.7 // 画面下部70%がドラッグゾーン
+    // タッチ入力（スマホ専用・ブラウザ全体で操作可能）
     let lastTouchX: number | null = null
-    let isDragging = false
 
     // パドルの境界チェック（壁の衝突判定）
     function clampPaddlePosition() {
@@ -259,13 +239,6 @@ export default function Game() {
       }
     }
 
-    // パドルを指定位置に移動（境界チェック付き）
-    function movePaddleToPosition(canvasX: number) {
-      if (!canvas) return
-      paddle.x = canvasX - paddle.width / 2
-      clampPaddlePosition()
-    }
-
     // パドルを相対的に移動（ドラッグ用）
     function movePaddleByDelta(deltaX: number) {
       if (!canvas) return
@@ -273,100 +246,30 @@ export default function Game() {
       clampPaddlePosition()
     }
 
-    // ドラッグモードに入るべきかを判定
-    function shouldEnterDragMode(canvasX: number, clientY: number, rect: DOMRect): boolean {
-      if (!canvas) return false
-      const paddleCenterX = paddle.x + paddle.width / 2
-      const distanceFromPaddle = Math.abs(canvasX - paddleCenterX)
-      // パドル付近または画面下部の場合はドラッグモード
-      return distanceFromPaddle < paddle.width || clientY > rect.top + canvas.height * DRAG_ZONE_THRESHOLD
-    }
-
     function handleTouchStart(e: TouchEvent) {
-      e.preventDefault()
-      if (!canvas || e.touches.length === 0) return
-      
+      if (e.touches.length === 0) return
       const touch = e.touches[0]
-      const rect = canvas.getBoundingClientRect()
-      const touchCanvasX = touch.clientX - rect.left
-      
-      if (shouldEnterDragMode(touchCanvasX, touch.clientY, rect)) {
-        isDragging = true
-        lastTouchX = touch.clientX
-      } else {
-        // それ以外はタップで移動
-        movePaddleToPosition(touchCanvasX)
-        isDragging = false
-      }
+      lastTouchX = touch.clientX
     }
 
     function handleTouchMove(e: TouchEvent) {
-      e.preventDefault()
-      if (!canvas || e.touches.length === 0) return
+      if (e.touches.length === 0 || lastTouchX === null) return
       
       const touch = e.touches[0]
-      
-      if (isDragging && lastTouchX !== null) {
-        // ドラッグモード: 指の移動量に応じてパドルを相対移動
-        const deltaX = touch.clientX - lastTouchX
-        movePaddleByDelta(deltaX)
-        lastTouchX = touch.clientX
-      } else {
-        // 通常モード: タッチ位置に直接移動
-        const rect = canvas.getBoundingClientRect()
-        const touchCanvasX = touch.clientX - rect.left
-        movePaddleToPosition(touchCanvasX)
-      }
+      // 指の移動量に応じてパドルを相対移動
+      const deltaX = touch.clientX - lastTouchX
+      movePaddleByDelta(deltaX)
+      lastTouchX = touch.clientX
     }
 
     function handleTouchEnd(e: TouchEvent) {
-      e.preventDefault()
       lastTouchX = null
-      isDragging = false
     }
 
-    // マウス入力（デスクトップ対応）
-    let isMouseDragging = false
-    let lastMouseX: number | null = null
-
-    function handleMouseDown(e: MouseEvent) {
-      if (!canvas) return
-      
-      const rect = canvas.getBoundingClientRect()
-      const mouseCanvasX = e.clientX - rect.left
-      
-      if (shouldEnterDragMode(mouseCanvasX, e.clientY, rect)) {
-        isMouseDragging = true
-        lastMouseX = e.clientX
-      } else {
-        // それ以外はクリックで移動
-        movePaddleToPosition(mouseCanvasX)
-      }
-    }
-
-    function handleMouseMove(e: MouseEvent) {
-      if (!canvas || !isMouseDragging || lastMouseX === null) return
-      
-      // ドラッグ中: マウスの移動量に応じてパドルを相対移動
-      const deltaX = e.clientX - lastMouseX
-      movePaddleByDelta(deltaX)
-      lastMouseX = e.clientX
-    }
-
-    function handleMouseUp(e: MouseEvent) {
-      isMouseDragging = false
-      lastMouseX = null
-    }
-
-    // イベントリスナー
-    document.addEventListener('keydown', keyDown)
-    document.addEventListener('keyup', keyUp)
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: false })
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false })
-    canvas.addEventListener('touchend', handleTouchEnd, { passive: false })
-    canvas.addEventListener('mousedown', handleMouseDown)
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
+    // イベントリスナー（ブラウザ全体でタッチ操作可能）
+    document.addEventListener('touchstart', handleTouchStart, { passive: true })
+    document.addEventListener('touchmove', handleTouchMove, { passive: true })
+    document.addEventListener('touchend', handleTouchEnd, { passive: true })
 
     // ゲームループ
     let animationFrameId: number
@@ -382,14 +285,9 @@ export default function Game() {
 
     // クリーンアップ
     return () => {
-      document.removeEventListener('keydown', keyDown)
-      document.removeEventListener('keyup', keyUp)
-      canvas.removeEventListener('touchstart', handleTouchStart)
-      canvas.removeEventListener('touchmove', handleTouchMove)
-      canvas.removeEventListener('touchend', handleTouchEnd)
-      canvas.removeEventListener('mousedown', handleMouseDown)
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
+      document.removeEventListener('touchstart', handleTouchStart)
+      document.removeEventListener('touchmove', handleTouchMove)
+      document.removeEventListener('touchend', handleTouchEnd)
       window.removeEventListener('resize', resizeCanvas)
       cancelAnimationFrame(animationFrameId)
     }
@@ -412,9 +310,8 @@ export default function Game() {
         </button>
       )}
       <div className="controls">
-        <p>PC: ← → キーまたは画面クリック/ドラッグでパドル移動 | スペースでスタート</p>
-        <p>スマホ: 画面をタップまたはスワイプ/ドラッグしてパドル移動 | ボタンでスタート</p>
-        <p className="hint">💡 パドルを指でドラッグすると滑らかに操作できます</p>
+        <p>画面のどこでもスワイプしてパドルを操作できます</p>
+        <p className="hint">💡 指を左右にスライドしてパドルを動かそう！</p>
       </div>
     </div>
   )
