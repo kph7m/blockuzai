@@ -250,13 +250,17 @@ export default function Game() {
       clampPaddlePosition()
     }
 
-    function handleTouchStart(e: TouchEvent) {
-      e.preventDefault()
-      // タップでゲーム開始
+    // ゲーム開始処理
+    function startGame() {
       if (!gameActive) {
         gameActive = true
         setGameStarted(true)
       }
+    }
+
+    function handleTouchStart(e: TouchEvent) {
+      e.preventDefault()
+      startGame()
       if (e.touches.length === 0) return
       const touch = e.touches[0]
       lastTouchX = touch.clientX
@@ -280,10 +284,7 @@ export default function Game() {
 
     // クリック/タップでゲーム開始
     function handleCanvasClick() {
-      if (!gameActive) {
-        gameActive = true
-        setGameStarted(true)
-      }
+      startGame()
     }
 
     // イベントリスナー（ブラウザ全体でタッチ操作可能）
