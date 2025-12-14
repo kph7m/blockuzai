@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ブロック崩し - Blockuzai</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+        }
+        
+        .container {
+            text-align: center;
+        }
+        
+        h1 {
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        canvas {
+            background: #000;
+            display: block;
+            margin: 0 auto;
+            border: 3px solid white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .info {
+            color: white;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        
+        .controls {
+            color: white;
+            margin-top: 10px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 ブロック崩し 🎮</h1>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="info">
+            <p>スコア: <span id="score">0</span> | ライフ: <span id="lives">3</span></p>
+        </div>
+        <div class="controls">
+            <p>← → キーでパドルを動かそう | スペースキーでスタート</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // ゲーム変数
+        let score = 0;
+        let lives = 3;
+        let gameStarted = false;
+        
+        // パドル
+        const paddle = {
+            width: 100,
+            height: 15,
+            x: canvas.width / 2 - 50,
+            y: canvas.height - 30,
+            speed: 8,
+            dx: 0
+        };
+        
+        // ボール
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 8,
+            speed: 4,
+            dx: 4,
+            dy: -4
+        };
+        
+        // ブロック
+        const brickInfo = {
+            rows: 5,
+            cols: 9,
+            width: 80,
+            height: 25,
+            padding: 10,
+            offsetX: 35,
+            offsetY: 60
+        };
+        
+        // ブロック配列を作成
+        const bricks = [];
+        for (let row = 0; row < brickInfo.rows; row++) {
+            bricks[row] = [];
+            for (let col = 0; col < brickInfo.cols; col++) {
+                bricks[row][col] = {
+                    x: col * (brickInfo.width + brickInfo.padding) + brickInfo.offsetX,
+                    y: row * (brickInfo.height + brickInfo.padding) + brickInfo.offsetY,
+                    visible: true
+                };
+            }
+        }
+        
+        // パドルを描画
+        function drawPaddle() {
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+        }
+        
+        // ボールを描画
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            ctx.closePath();
+        }
+        
+        // ブロックを描画
+        function drawBricks() {
+            bricks.forEach((row, rowIndex) => {
+                row.forEach(brick => {
+                    if (brick.visible) {
+                        ctx.fillStyle = `hsl(${rowIndex * 40}, 70%, 60%)`;
+                        ctx.fillRect(brick.x, brick.y, brickInfo.width, brickInfo.height);
+                        ctx.strokeStyle = '#fff';
+                        ctx.strokeRect(brick.x, brick.y, brickInfo.width, brickInfo.height);
+                    }
+                });
+            });
+        }
+        
+        // パドルを移動
+        function movePaddle() {
+            paddle.x += paddle.dx;
+            
+            // 壁の衝突判定
+            if (paddle.x < 0) {
+                paddle.x = 0;
+            }
+            if (paddle.x + paddle.width > canvas.width) {
+                paddle.x = canvas.width - paddle.width;
+            }
+        }
+        
+        // ボールを移動
+        function moveBall() {
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+            
+            // 壁の衝突判定
+            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                ball.dx *= -1;
+            }
+            if (ball.y - ball.radius < 0) {
+                ball.dy *= -1;
+            }
+            
+            // パドルとの衝突判定
+            if (ball.y + ball.radius > paddle.y && 
+                ball.x > paddle.x && 
+                ball.x < paddle.x + paddle.width) {
+                ball.dy *= -1;
+                ball.y = paddle.y - ball.radius;
+            }
+            
+            // 底に落ちた場合
+            if (ball.y + ball.radius > canvas.height) {
+                lives--;
+                document.getElementById('lives').textContent = lives;
+                
+                if (lives === 0) {
+                    alert('ゲームオーバー！スコア: ' + score);
+                    document.location.reload();
+                } else {
+                    // ボールをリセット
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                    ball.dx = 4;
+                    ball.dy = -4;
+                }
+            }
+        }
+        
+        // ブロックとの衝突判定
+        function checkBrickCollision() {
+            bricks.forEach(row => {
+                row.forEach(brick => {
+                    if (brick.visible) {
+                        if (ball.x > brick.x && 
+                            ball.x < brick.x + brickInfo.width && 
+                            ball.y > brick.y && 
+                            ball.y < brick.y + brickInfo.height) {
+                            ball.dy *= -1;
+                            brick.visible = false;
+                            score += 10;
+                            document.getElementById('score').textContent = score;
+                            
+                            // 全てのブロックが破壊されたか確認
+                            if (score === brickInfo.rows * brickInfo.cols * 10) {
+                                alert('おめでとう！クリア！');
+                                document.location.reload();
+                            }
+                        }
+                    }
+                });
+            });
+        }
+        
+        // 描画
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawBricks();
+            drawBall();
+            drawPaddle();
+            
+            if (gameStarted) {
+                movePaddle();
+                moveBall();
+                checkBrickCollision();
+            }
+        }
+        
+        // キーボード入力
+        function keyDown(e) {
+            if (e.key === 'ArrowRight' || e.key === 'Right') {
+                paddle.dx = paddle.speed;
+            } else if (e.key === 'ArrowLeft' || e.key === 'Left') {
+                paddle.dx = -paddle.speed;
+            } else if (e.key === ' ' || e.key === 'Spacebar') {
+                gameStarted = true;
+            }
+        }
+        
+        function keyUp(e) {
+            if (e.key === 'ArrowRight' || e.key === 'Right' || 
+                e.key === 'ArrowLeft' || e.key === 'Left') {
+                paddle.dx = 0;
+            }
+        }
+        
+        // イベントリスナー
+        document.addEventListener('keydown', keyDown);
+        document.addEventListener('keyup', keyUp);
+        
+        // ゲームループ
+        function gameLoop() {
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        gameLoop();
+    </script>
+</body>
+</html>
