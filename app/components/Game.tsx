@@ -26,6 +26,7 @@ export default function Game() {
       const maxHeight = 600
       const windowWidth = window.innerWidth
       const windowHeight = window.innerHeight
+      const TOP_PADDING_OFFSET = 20 // 10px top padding + 10px bottom spacing
       
       let canvasWidth = maxWidth
       let canvasHeight = maxHeight
@@ -37,8 +38,8 @@ export default function Game() {
       }
       
       // 高さも確認（10pxのtop paddingを考慮）
-      if (canvasHeight > windowHeight - 20) {
-        canvasHeight = windowHeight - 20
+      if (canvasHeight > windowHeight - TOP_PADDING_OFFSET) {
+        canvasHeight = windowHeight - TOP_PADDING_OFFSET
         canvasWidth = (canvasHeight / maxHeight) * maxWidth
       }
       
