@@ -23,24 +23,21 @@ export default function Game() {
     function resizeCanvas() {
       if (!canvas) return
       const maxWidth = 800
-      const maxHeight = 600
       const windowWidth = window.innerWidth
       const windowHeight = window.innerHeight
-      const TOP_PADDING_OFFSET = 20 // 10px top padding + 10px spacing buffer
+      const VERTICAL_SPACING = 120 // スコア表示とメッセージ用の余白
       
       let canvasWidth = maxWidth
-      let canvasHeight = maxHeight
+      let canvasHeight = windowHeight - VERTICAL_SPACING
       
       // スマホサイズの場合は画面に合わせる
       if (windowWidth < maxWidth + 40) {
         canvasWidth = windowWidth - 40
-        canvasHeight = (canvasWidth / maxWidth) * maxHeight
       }
       
-      // 高さも確認（10pxのtop paddingを考慮）
-      if (canvasHeight > windowHeight - TOP_PADDING_OFFSET) {
-        canvasHeight = windowHeight - TOP_PADDING_OFFSET
-        canvasWidth = (canvasHeight / maxHeight) * maxWidth
+      // 最小高さを確保
+      if (canvasHeight < 400) {
+        canvasHeight = 400
       }
       
       canvas.width = canvasWidth
