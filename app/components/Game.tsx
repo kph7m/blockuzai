@@ -83,8 +83,8 @@ export default function Game() {
       width: 45 * Math.min(scaleX, scaleY),
       height: 45 * Math.min(scaleX, scaleY),
       padding: 2 * Math.min(scaleX, scaleY),
-      offsetX: 10 * scaleX,
-      offsetY: 20 * scaleY
+      offsetX: 10 * Math.min(scaleX, scaleY),
+      offsetY: 20 * Math.min(scaleX, scaleY)
     }
 
     // ブロック配列を作成
