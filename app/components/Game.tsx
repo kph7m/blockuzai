@@ -81,7 +81,7 @@ export default function Game() {
 
     // ブロック
     const brickInfo = {
-      rows: 10,
+      rows: 5,
       cols: 15,
       padding: 0,
       offsetX: 0,
@@ -90,15 +90,32 @@ export default function Game() {
       get height() { return canvas.width / this.cols }
     }
 
+    // 7色のカラーパレット
+    const blockColors = [
+      '#FF6B6B', // 赤
+      '#4ECDC4', // シアン
+      '#45B7D1', // 青
+      '#FFA07A', // サーモン
+      '#98D8C8', // ミント
+      '#F7DC6F', // 黄色
+      '#BB8FCE'  // 紫
+    ]
+
     // ブロック配列を作成
-    const bricks: { x: number; y: number; visible: boolean }[][] = []
+    const bricks: { x: number; y: number; visible: boolean; color: string }[][] = []
     for (let row = 0; row < brickInfo.rows; row++) {
       bricks[row] = []
       for (let col = 0; col < brickInfo.cols; col++) {
+        // ブロックの高さの合計を計算して、キャンバスの70%に収める
+        const totalBlockHeight = brickInfo.rows * brickInfo.height
+        const targetHeight = canvas.height * 0.7
+        const offsetY = (targetHeight - totalBlockHeight) / 2
+        
         bricks[row][col] = {
           x: col * (brickInfo.width + brickInfo.padding) + brickInfo.offsetX,
-          y: row * (brickInfo.height + brickInfo.padding) + brickInfo.offsetY,
-          visible: true
+          y: row * (brickInfo.height + brickInfo.padding) + offsetY,
+          visible: true,
+          color: blockColors[Math.floor(Math.random() * blockColors.length)]
         }
       }
     }
@@ -123,10 +140,10 @@ export default function Game() {
     // ブロックを描画
     function drawBricks() {
       if (!ctx) return
-      bricks.forEach((row, rowIndex) => {
+      bricks.forEach((row) => {
         row.forEach(brick => {
           if (brick.visible) {
-            ctx.fillStyle = `hsl(${rowIndex * 40}, 70%, 60%)`
+            ctx.fillStyle = brick.color
             ctx.fillRect(brick.x, brick.y, brickInfo.width, brickInfo.height)
             ctx.strokeStyle = '#fff'
             ctx.strokeRect(brick.x, brick.y, brickInfo.width, brickInfo.height)
