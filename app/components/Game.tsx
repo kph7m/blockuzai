@@ -80,11 +80,11 @@ export default function Game() {
     const brickInfo = {
       rows: 5,
       cols: 9,
-      width: 45 * scaleX,
-      height: 45 * scaleY,
-      padding: 5 * scaleX,
-      offsetX: 30 * scaleX,
-      offsetY: 60 * scaleY
+      width: 45 * Math.min(scaleX, scaleY),
+      height: 45 * Math.min(scaleX, scaleY),
+      padding: 2 * Math.min(scaleX, scaleY),
+      offsetX: 10 * scaleX,
+      offsetY: 20 * scaleY
     }
 
     // ブロック配列を作成
