@@ -233,9 +233,6 @@ export default function Game() {
   }, [])
 
   const handleRestart = () => {
-    setScore(0)
-    setLives(3)
-    setGameState('paused')
     window.location.reload()
   }
 
