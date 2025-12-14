@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from 'react'
 
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [score, setScore] = useState(0)
   const [lives, setLives] = useState(3)
+  const [gameStarted, setGameStarted] = useState(false)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -14,18 +16,53 @@ export default function Game() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    // レスポンシブなキャンバスサイズを設定
+    function resizeCanvas() {
+      if (!canvas) return
+      const maxWidth = 800
+      const maxHeight = 600
+      const windowWidth = window.innerWidth
+      const windowHeight = window.innerHeight
+      
+      let canvasWidth = maxWidth
+      let canvasHeight = maxHeight
+      
+      // スマホサイズの場合は画面に合わせる
+      if (windowWidth < maxWidth + 40) {
+        canvasWidth = windowWidth - 40
+        canvasHeight = (canvasWidth / maxWidth) * maxHeight
+      }
+      
+      // 高さも確認
+      if (canvasHeight > windowHeight - 200) {
+        canvasHeight = windowHeight - 200
+        canvasWidth = (canvasHeight / maxHeight) * maxWidth
+      }
+      
+      canvas.width = canvasWidth
+      canvas.height = canvasHeight
+      
+      return { width: canvasWidth, height: canvasHeight }
+    }
+
+    const canvasSize = resizeCanvas()
+    if (!canvasSize) return
+
     // ゲーム変数
     let gameScore = 0
     let gameLives = 3
-    let gameStarted = false
+
+    // スケール係数（基準サイズ800x600に対する比率）
+    const scaleX = canvas.width / 800
+    const scaleY = canvas.height / 600
 
     // パドル
     const paddle = {
-      width: 100,
-      height: 15,
-      x: canvas.width / 2 - 50,
-      y: canvas.height - 30,
-      speed: 8,
+      width: 100 * scaleX,
+      height: 15 * scaleY,
+      x: canvas.width / 2 - (50 * scaleX),
+      y: canvas.height - (30 * scaleY),
+      speed: 8 * scaleX,
       dx: 0
     }
 
@@ -33,21 +70,21 @@ export default function Game() {
     const ball = {
       x: canvas.width / 2,
       y: canvas.height / 2,
-      radius: 8,
-      speed: 4,
-      dx: 4,
-      dy: -4
+      radius: 8 * Math.min(scaleX, scaleY),
+      speed: 4 * Math.min(scaleX, scaleY),
+      dx: 4 * scaleX,
+      dy: -4 * scaleY
     }
 
     // ブロック
     const brickInfo = {
       rows: 5,
       cols: 9,
-      width: 80,
-      height: 25,
-      padding: 10,
-      offsetX: 35,
-      offsetY: 60
+      width: 80 * scaleX,
+      height: 25 * scaleY,
+      padding: 10 * scaleX,
+      offsetX: 35 * scaleX,
+      offsetY: 60 * scaleY
     }
 
     // ブロック配列を作成
@@ -143,8 +180,8 @@ export default function Game() {
           // ボールをリセット
           ball.x = canvas.width / 2
           ball.y = canvas.height / 2
-          ball.dx = 4
-          ball.dy = -4
+          ball.dx = 4 * scaleX
+          ball.dy = -4 * scaleY
         }
       }
     }
@@ -197,7 +234,7 @@ export default function Game() {
       } else if (e.key === 'ArrowLeft' || e.key === 'Left') {
         paddle.dx = -paddle.speed
       } else if (e.key === ' ') {
-        gameStarted = true
+        setGameStarted(true)
       }
     }
 
@@ -208,9 +245,45 @@ export default function Game() {
       }
     }
 
+    // タッチ・マウス入力（モバイル対応）
+    let touchX: number | null = null
+
+    function handleTouchStart(e: TouchEvent) {
+      e.preventDefault()
+      if (e.touches.length > 0) {
+        touchX = e.touches[0].clientX
+      }
+    }
+
+    function handleTouchMove(e: TouchEvent) {
+      e.preventDefault()
+      if (!canvas || e.touches.length === 0) return
+      
+      const touch = e.touches[0]
+      const rect = canvas.getBoundingClientRect()
+      const touchCanvasX = touch.clientX - rect.left
+      
+      // パドルをタッチ位置に移動
+      paddle.x = touchCanvasX - paddle.width / 2
+      
+      // 壁の衝突判定
+      if (paddle.x < 0) paddle.x = 0
+      if (paddle.x + paddle.width > canvas.width) {
+        paddle.x = canvas.width - paddle.width
+      }
+    }
+
+    function handleTouchEnd(e: TouchEvent) {
+      e.preventDefault()
+      touchX = null
+    }
+
     // イベントリスナー
     document.addEventListener('keydown', keyDown)
     document.addEventListener('keyup', keyUp)
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false })
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false })
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: false })
 
     // ゲームループ
     let animationFrameId: number
@@ -221,23 +294,40 @@ export default function Game() {
 
     gameLoop()
 
+    // リサイズイベント
+    window.addEventListener('resize', resizeCanvas)
+
     // クリーンアップ
     return () => {
       document.removeEventListener('keydown', keyDown)
       document.removeEventListener('keyup', keyUp)
+      canvas.removeEventListener('touchstart', handleTouchStart)
+      canvas.removeEventListener('touchmove', handleTouchMove)
+      canvas.removeEventListener('touchend', handleTouchEnd)
+      window.removeEventListener('resize', resizeCanvas)
       cancelAnimationFrame(animationFrameId)
     }
-  }, [])
+  }, [gameStarted])
+
+  const handleStartGame = () => {
+    setGameStarted(true)
+  }
 
   return (
-    <div className="container">
+    <div className="container" ref={containerRef}>
       <h1>🎮 ブロック崩し 🎮</h1>
-      <canvas ref={canvasRef} id="gameCanvas" width="800" height="600"></canvas>
+      <canvas ref={canvasRef} id="gameCanvas"></canvas>
       <div className="info">
         <p>スコア: <span id="score">{score}</span> | ライフ: <span id="lives">{lives}</span></p>
       </div>
+      {!gameStarted && (
+        <button className="start-button" onClick={handleStartGame}>
+          ゲームスタート
+        </button>
+      )}
       <div className="controls">
-        <p>← → キーでパドルを動かそう | スペースキーでスタート</p>
+        <p>PC: ← → キーでパドル移動 | スペースでスタート</p>
+        <p>スマホ: 画面タッチでパドル移動 | ボタンでスタート</p>
       </div>
     </div>
   )
