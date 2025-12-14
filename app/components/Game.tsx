@@ -26,6 +26,7 @@ export default function Game() {
       const maxHeight = 600
       const windowWidth = window.innerWidth
       const windowHeight = window.innerHeight
+      const TOP_PADDING_OFFSET = 20 // 10px top padding + 10px spacing buffer
       
       let canvasWidth = maxWidth
       let canvasHeight = maxHeight
@@ -36,9 +37,9 @@ export default function Game() {
         canvasHeight = (canvasWidth / maxWidth) * maxHeight
       }
       
-      // 高さも確認
-      if (canvasHeight > windowHeight - 200) {
-        canvasHeight = windowHeight - 200
+      // 高さも確認（10pxのtop paddingを考慮）
+      if (canvasHeight > windowHeight - TOP_PADDING_OFFSET) {
+        canvasHeight = windowHeight - TOP_PADDING_OFFSET
         canvasWidth = (canvasHeight / maxHeight) * maxWidth
       }
       
@@ -318,7 +319,6 @@ export default function Game() {
 
   return (
     <div className="container" ref={containerRef}>
-      <h1>🎮 ブロック崩し 🎮</h1>
       <canvas ref={canvasRef} id="gameCanvas"></canvas>
       <div className="info">
         <p>スコア: <span id="score">{score}</span> | ライフ: <span id="lives">{lives}</span></p>
@@ -328,10 +328,6 @@ export default function Game() {
           <p>画面をタップしてゲームスタート！</p>
         </div>
       )}
-      <div className="controls">
-        <p>画面のどこでもスワイプしてパドルを操作できます</p>
-        <p className="hint">💡 指を左右にスライドしてパドルを動かそう！</p>
-      </div>
     </div>
   )
 }
