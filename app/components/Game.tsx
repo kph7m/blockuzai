@@ -86,7 +86,7 @@ export default function Game() {
     
     // ブロック
     const brickInfo = {
-      cols: 15,
+      cols: 30, // 列数を2倍にしてブロックサイズを維持したまま横幅100%を埋める
       padding: 0,
       offsetX: 0,
       offsetY: 0,
