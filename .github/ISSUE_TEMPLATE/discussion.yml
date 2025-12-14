@@ -1,0 +1,44 @@
+name: 💬 相談・質問
+description: 質問や相談、アイデアについて話し合う
+title: "[Discussion] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        質問や相談ありがとうございます！気軽に内容を記入してください。
+  
+  - type: dropdown
+    id: discussion-type
+    attributes:
+      label: 相談の種類
+      description: 相談の種類を選択してください
+      options:
+        - 質問
+        - アイデアの相談
+        - 技術的な相談
+        - その他
+    validations:
+      required: true
+  
+  - type: textarea
+    id: discussion-content
+    attributes:
+      label: 相談内容
+      description: 質問や相談したい内容を記載してください。
+      placeholder: 例：新しい機能のアイデアがあるので相談したい、コードの実装について質問したい
+    validations:
+      required: true
+  
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景や詳細
+      description: 相談に至った背景や、より詳しい情報があれば記載してください。
+      placeholder: 例：〇〇という機能を追加するために、△△の実装方法を検討しています
+  
+  - type: textarea
+    id: additional
+    attributes:
+      label: 追加情報
+      description: その他、参考になる情報があれば記載してください。
