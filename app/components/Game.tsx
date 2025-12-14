@@ -247,12 +247,14 @@ export default function Game() {
     }
 
     function handleTouchStart(e: TouchEvent) {
+      e.preventDefault()
       if (e.touches.length === 0) return
       const touch = e.touches[0]
       lastTouchX = touch.clientX
     }
 
     function handleTouchMove(e: TouchEvent) {
+      e.preventDefault()
       if (e.touches.length === 0 || lastTouchX === null) return
       
       const touch = e.touches[0]
@@ -263,13 +265,14 @@ export default function Game() {
     }
 
     function handleTouchEnd(e: TouchEvent) {
+      e.preventDefault()
       lastTouchX = null
     }
 
     // イベントリスナー（ブラウザ全体でタッチ操作可能）
-    document.addEventListener('touchstart', handleTouchStart, { passive: true })
-    document.addEventListener('touchmove', handleTouchMove, { passive: true })
-    document.addEventListener('touchend', handleTouchEnd, { passive: true })
+    document.addEventListener('touchstart', handleTouchStart, { passive: false })
+    document.addEventListener('touchmove', handleTouchMove, { passive: false })
+    document.addEventListener('touchend', handleTouchEnd, { passive: false })
 
     // ゲームループ
     let animationFrameId: number
