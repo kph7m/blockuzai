@@ -7,7 +7,6 @@ export default function Game() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [score, setScore] = useState(0)
   const [lives, setLives] = useState(3)
-  const [gameStarted, setGameStarted] = useState(false)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -17,7 +16,7 @@ export default function Game() {
     if (!ctx) return
     
     // ゲーム開始フラグ（ローカル変数として管理）
-    let gameActive = false
+    let gameActive = true
 
     // レスポンシブなキャンバスサイズを設定
     function resizeCanvas() {
@@ -84,11 +83,11 @@ export default function Game() {
     const brickInfo = {
       rows: 10,
       cols: 15,
-      width: canvas.width / 15,
-      height: (canvas.height * 0.75) / 10,
       padding: 0,
       offsetX: 0,
-      offsetY: 0
+      offsetY: 0,
+      get width() { return canvas.width / this.cols }, // 正方形にするために幅と高さを同じにする
+      get height() { return canvas.width / this.cols }
     }
 
     // ブロック配列を作成
@@ -250,17 +249,8 @@ export default function Game() {
       clampPaddlePosition()
     }
 
-    // ゲーム開始処理
-    function startGame() {
-      if (!gameActive) {
-        gameActive = true
-        setGameStarted(true)
-      }
-    }
-
     function handleTouchStart(e: TouchEvent) {
       e.preventDefault()
-      startGame()
       if (e.touches.length === 0) return
       const touch = e.touches[0]
       lastTouchX = touch.clientX
@@ -282,13 +272,7 @@ export default function Game() {
       lastTouchX = null
     }
 
-    // クリック/タップでゲーム開始
-    function handleCanvasClick() {
-      startGame()
-    }
-
     // イベントリスナー（ブラウザ全体でタッチ操作可能）
-    canvas.addEventListener('click', handleCanvasClick)
     document.addEventListener('touchstart', handleTouchStart, { passive: false })
     document.addEventListener('touchmove', handleTouchMove, { passive: false })
     document.addEventListener('touchend', handleTouchEnd, { passive: false })
@@ -307,7 +291,6 @@ export default function Game() {
 
     // クリーンアップ
     return () => {
-      canvas.removeEventListener('click', handleCanvasClick)
       document.removeEventListener('touchstart', handleTouchStart)
       document.removeEventListener('touchmove', handleTouchMove)
       document.removeEventListener('touchend', handleTouchEnd)
@@ -322,11 +305,6 @@ export default function Game() {
       <div className="info">
         <p>スコア: <span id="score">{score}</span> | ライフ: <span id="lives">{lives}</span></p>
       </div>
-      {!gameStarted && (
-        <div className="start-message">
-          <p>画面をタップしてゲームスタート！</p>
-        </div>
-      )}
     </div>
   )
 }
