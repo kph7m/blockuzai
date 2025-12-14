@@ -1,6 +1,8 @@
 # blockuzai 🎯
 AIだけでブロック崩しできるかな
 
+**Live Demo**: https://blockuzai.web.app
+
 ## 🚀 セットアップ
 
 ```bash
