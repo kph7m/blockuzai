@@ -100,9 +100,6 @@ export default function Game() {
       '#BB8FCE'  // 紫
     ]
 
-    // ブロックの高さの合計を計算して、キャンバスの70%を埋めるように配置
-    const totalBlockHeight = brickInfo.rows * brickInfo.height
-    const targetHeight = canvas.height * 0.7
     // ブロックを上から配置（中央揃えをせずに上から詰める）
     const offsetY = 0
 
