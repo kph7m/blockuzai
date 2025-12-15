@@ -14,18 +14,20 @@ function isMobileDevice(): boolean {
   if (typeof window === 'undefined') return false
   
   // User Agentでモバイルデバイスを判定（最優先）
-  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera
+  // モバイルデバイスのUser Agentが検出された場合は即座にtrueを返す
+  const userAgent = navigator.userAgent || navigator.vendor || ''
   const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i
   
   if (mobileRegex.test(userAgent.toLowerCase())) {
     return true
   }
   
-  // タッチデバイスかつ画面幅が768px以下の場合もモバイルと判定
+  // User Agentでモバイルと判定できない場合、
+  // タッチデバイスかつ画面幅が768px以下の場合をモバイルと判定
+  // （タブレットや小型タッチスクリーンデバイスに対応）
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
   const isSmallScreen = window.innerWidth <= 768
   
-  // タッチ対応で小さい画面の場合のみtrueを返す
   return isTouchDevice && isSmallScreen
 }
 
