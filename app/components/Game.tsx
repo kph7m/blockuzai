@@ -96,7 +96,7 @@ export default function Game() {
     const BLOCKS_FILL_RATIO = 0.7
     
     // ボールが跳ね返るまでに必要な破壊ブロック数
-    const BLOCKS_TO_DESTROY_BEFORE_BOUNCE = 30
+    const BLOCKS_TO_DESTROY_BEFORE_BOUNCE = 50
     
     // ブロック
     const brickInfo = {
@@ -147,7 +147,7 @@ export default function Game() {
     // パドルを描画
     function drawPaddle() {
       if (!ctx) return
-      ctx.fillStyle = '#fff'
+      ctx.fillStyle = '#000'
       ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height)
     }
 
@@ -156,29 +156,17 @@ export default function Game() {
       if (!ctx) return
       ctx.beginPath()
       ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2)
-      ctx.fillStyle = '#fff'
+      ctx.fillStyle = '#000'
       ctx.fill()
       ctx.closePath()
     }
 
-    // 背景画像を描画（ブロックが消えるほど見えるようになる）
+    // 背景画像を描画
     function drawBackgroundImage() {
       if (!ctx || !canvas || !imageLoaded) return
       
       // 画像の寸法が有効かチェック（naturalWidthを使用）
       if (!backgroundImage.naturalWidth || !backgroundImage.naturalHeight) return
-      
-      // 残りブロックの割合を計算（0.0～1.0）
-      const totalBlocks = brickInfo.rows * brickInfo.cols
-      if (totalBlocks === 0) return
-      
-      const visibleBlockRatio = remainingBricks / totalBlocks
-      
-      // ブロックが消えるほど画像が見えるようにする（透明度を調整）
-      const imageOpacity = 1 - visibleBlockRatio
-      
-      ctx.save()
-      ctx.globalAlpha = imageOpacity
       
       // 画像をキャンバスの上部に配置（幅はキャンバスいっぱいに）
       const imageAspectRatio = backgroundImage.naturalWidth / backgroundImage.naturalHeight
@@ -187,8 +175,6 @@ export default function Game() {
       
       // キャンバスの一番上から描画
       ctx.drawImage(backgroundImage, 0, 0, drawWidth, drawHeight)
-      
-      ctx.restore()
     }
 
     // ブロックを描画
