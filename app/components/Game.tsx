@@ -48,11 +48,6 @@ export default function Game() {
     setIsMobile(isMobileDevice())
   }, [])
 
-  // gameStartedの変化を追跡するためのeffect
-  useEffect(() => {
-    gameStartedRef.current = gameStarted
-  }, [gameStarted])
-
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -425,7 +420,10 @@ export default function Game() {
       {!gameStarted && (
         <button 
           className="start-button"
-          onClick={() => setGameStarted(true)}
+          onClick={() => {
+            setGameStarted(true)
+            gameStartedRef.current = true
+          }}
         >
           Start
         </button>
