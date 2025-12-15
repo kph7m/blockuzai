@@ -105,7 +105,7 @@ export default function Game() {
     const BLOCKS_FILL_RATIO = 0.7
     
     // ボールが跳ね返るまでに必要な破壊ブロック数
-    const BLOCKS_TO_DESTROY_BEFORE_BOUNCE = 50
+    const BLOCKS_TO_DESTROY_BEFORE_BOUNCE = 70
     
     // ブロック
     const brickInfo = {
@@ -235,6 +235,7 @@ export default function Game() {
           ball.x < paddle.x + paddle.width) {
         ball.dy *= -1
         ball.y = paddle.y - ball.radius
+        destroyedBlocksCount = 0 // パドルに当たったらカウントをリセット
       }
 
       // 底に落ちた場合
@@ -260,7 +261,7 @@ export default function Game() {
               remainingBricks--
               destroyedBlocksCount++
 
-              // 30個破壊したら跳ね返る
+              // 70個破壊したら跳ね返る
               if (destroyedBlocksCount >= BLOCKS_TO_DESTROY_BEFORE_BOUNCE) {
                 ball.dy *= -1
                 destroyedBlocksCount = 0
