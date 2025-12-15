@@ -17,6 +17,10 @@ export default function Game() {
   const [selectedImageUrl] = useState(() => 
     BACKGROUND_IMAGE_URLS[Math.floor(Math.random() * BACKGROUND_IMAGE_URLS.length)]
   )
+  
+  // ゲームの状態管理（waiting: スタート待ち、playing: プレイ中）
+  const [gameState, setGameState] = useState<'waiting' | 'playing'>('waiting')
+  const gameStateRef = useRef<'waiting' | 'playing'>('waiting')
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -24,9 +28,6 @@ export default function Game() {
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-    
-    // ゲーム開始フラグ（ローカル変数として管理）
-    let gameActive = true
 
     // 背景画像を読み込む
     const backgroundImage = new Image()
@@ -245,6 +246,9 @@ export default function Game() {
         ball.y = paddle.y - ball.radius
         ball.dx = 4 * scaleX
         ball.dy = -4 * scaleY
+        // ゲームを待機状態に戻す
+        gameStateRef.current = 'waiting'
+        setGameState('waiting')
       }
     }
 
@@ -288,7 +292,8 @@ export default function Game() {
       drawBall()
       drawPaddle()
 
-      if (gameActive) {
+      // プレイ中のみボールとパドルを動かす
+      if (gameStateRef.current === 'playing') {
         movePaddle()
         moveBall()
         checkBrickCollision()
@@ -376,11 +381,50 @@ export default function Game() {
       window.removeEventListener('resize', resizeCanvas)
       cancelAnimationFrame(animationFrameId)
     }
-  }, [])
+  }, [selectedImageUrl])
+
+  // スタートボタンをクリックしたときの処理
+  const handleStartClick = () => {
+    gameStateRef.current = 'playing'
+    setGameState('playing')
+  }
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container" ref={containerRef} style={{ position: 'relative' }}>
       <canvas ref={canvasRef} id="gameCanvas"></canvas>
+      {/* 待機中のみスタートボタンを表示 */}
+      {gameState === 'waiting' && (
+        <button 
+          onClick={handleStartClick}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            padding: '20px 40px',
+            fontSize: '24px',
+            fontWeight: 'bold',
+            backgroundColor: '#4ECDC4',
+            color: 'white',
+            border: 'none',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+            zIndex: 10,
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#45B7D1'
+            e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.05)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#4ECDC4'
+            e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)'
+          }}
+        >
+          スタート
+        </button>
+      )}
     </div>
   )
 }
