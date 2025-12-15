@@ -390,17 +390,15 @@ export default function Game() {
   }
 
   return (
-    <div className="container" ref={containerRef} style={{ position: 'relative' }}>
+    <div className="container" ref={containerRef}>
       <canvas ref={canvasRef} id="gameCanvas"></canvas>
-      {/* 待機中のみスタートボタンを表示 */}
+      {/* 待機中のみスタートボタンを表示（キャンバス外の下部に配置） */}
       {gameState === 'waiting' && (
         <button 
           onClick={handleStartClick}
           style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
+            display: 'block',
+            margin: '20px auto 0',
             padding: '20px 40px',
             fontSize: '24px',
             fontWeight: 'bold',
@@ -410,16 +408,15 @@ export default function Game() {
             borderRadius: '10px',
             cursor: 'pointer',
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-            zIndex: 10,
             transition: 'all 0.3s ease'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = '#45B7D1'
-            e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.05)'
+            e.currentTarget.style.transform = 'scale(1.05)'
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = '#4ECDC4'
-            e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)'
+            e.currentTarget.style.transform = 'scale(1)'
           }}
         >
           スタート
