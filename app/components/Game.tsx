@@ -5,8 +5,6 @@ import { useEffect, useRef, useState } from 'react'
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const [score, setScore] = useState(0)
-  const [lives, setLives] = useState(3)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -52,8 +50,6 @@ export default function Game() {
     if (!canvasSize) return
 
     // ゲーム変数
-    let gameScore = 0
-    let gameLives = 3
 
     // スケール係数（基準サイズ800に対する横幅の比率）
     // 縦方向は動的な高さに応じて要素を配置するため、横幅のスケールを使用
@@ -123,6 +119,9 @@ export default function Game() {
         }
       }
     }
+
+    // 残りのブロック数を追跡（パフォーマンス向上のため）
+    let remainingBricks = brickInfo.rows * brickInfo.cols
 
     // パドルを描画
     function drawPaddle() {
@@ -194,19 +193,11 @@ export default function Game() {
 
       // 底に落ちた場合
       if (ball.y + ball.radius > canvas.height) {
-        gameLives--
-        setLives(gameLives)
-
-        if (gameLives === 0) {
-          alert('ゲームオーバー！スコア: ' + gameScore)
-          window.location.reload()
-        } else {
-          // ボールをリセット（パドルの上に配置）
-          ball.x = paddle.x + paddle.width / 2
-          ball.y = paddle.y - ball.radius
-          ball.dx = 4 * scaleX
-          ball.dy = -4 * scaleY
-        }
+        // ボールをリセット（パドルの上に配置）
+        ball.x = paddle.x + paddle.width / 2
+        ball.y = paddle.y - ball.radius
+        ball.dx = 4 * scaleX
+        ball.dy = -4 * scaleY
       }
     }
 
@@ -221,11 +212,10 @@ export default function Game() {
                 ball.y - ball.radius < brick.y + brickInfo.height) {
               ball.dy *= -1
               brick.visible = false
-              gameScore += 10
-              setScore(gameScore)
+              remainingBricks--
 
               // 全てのブロックが破壊されたか確認
-              if (gameScore === brickInfo.rows * brickInfo.cols * 10) {
+              if (remainingBricks === 0) {
                 alert('おめでとう！クリア！')
                 window.location.reload()
               }
@@ -323,9 +313,6 @@ export default function Game() {
   return (
     <div className="container" ref={containerRef}>
       <canvas ref={canvasRef} id="gameCanvas"></canvas>
-      <div className="info">
-        <p>スコア: <span id="score">{score}</span> | ライフ: <span id="lives">{lives}</span></p>
-      </div>
     </div>
   )
 }
