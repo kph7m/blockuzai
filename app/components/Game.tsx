@@ -383,45 +383,17 @@ export default function Game() {
     }
   }, [selectedImageUrl])
 
-  // スタートボタンをクリックしたときの処理
-  const handleStartClick = () => {
-    gameStateRef.current = 'playing'
-    setGameState('playing')
+  // タップ/クリックでゲームを開始
+  const handleStart = () => {
+    if (gameStateRef.current === 'waiting') {
+      gameStateRef.current = 'playing'
+      setGameState('playing')
+    }
   }
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container" ref={containerRef} onClick={handleStart} onTouchStart={handleStart}>
       <canvas ref={canvasRef} id="gameCanvas"></canvas>
-      {/* 待機中のみスタートボタンを表示（キャンバス外の下部に配置） */}
-      {gameState === 'waiting' && (
-        <button 
-          onClick={handleStartClick}
-          style={{
-            display: 'block',
-            margin: '20px auto 0',
-            padding: '20px 40px',
-            fontSize: '24px',
-            fontWeight: 'bold',
-            backgroundColor: '#4ECDC4',
-            color: 'white',
-            border: 'none',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#45B7D1'
-            e.currentTarget.style.transform = 'scale(1.05)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#4ECDC4'
-            e.currentTarget.style.transform = 'scale(1)'
-          }}
-        >
-          スタート
-        </button>
-      )}
     </div>
   )
 }
