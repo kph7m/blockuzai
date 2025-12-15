@@ -336,10 +336,23 @@ export default function Game() {
       lastTouchX = null
     }
 
+    // マウス入力（Web/デスクトップ用）
+    function handleMouseMove(e: MouseEvent) {
+      if (!canvas) return
+      const rect = canvas.getBoundingClientRect()
+      const mouseX = e.clientX - rect.left
+      // マウスのX座標を中心にパドルを配置
+      paddle.x = mouseX - paddle.width / 2
+      clampPaddlePosition()
+    }
+
     // イベントリスナー（ブラウザ全体でタッチ操作可能）
     document.addEventListener('touchstart', handleTouchStart, { passive: false })
     document.addEventListener('touchmove', handleTouchMove, { passive: false })
     document.addEventListener('touchend', handleTouchEnd, { passive: false })
+    
+    // マウスイベントリスナー
+    canvas.addEventListener('mousemove', handleMouseMove)
 
     // ゲームループ
     let animationFrameId: number
@@ -358,6 +371,7 @@ export default function Game() {
       document.removeEventListener('touchstart', handleTouchStart)
       document.removeEventListener('touchmove', handleTouchMove)
       document.removeEventListener('touchend', handleTouchEnd)
+      canvas.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('resize', resizeCanvas)
       cancelAnimationFrame(animationFrameId)
     }
