@@ -81,15 +81,22 @@ export default function Game() {
     const scaleX = canvas.width / 800
     const scaleY = scaleX // 縦横同じスケールを使用してアスペクト比を維持
 
-    // パドル
+    // パドル（デフォルト幅を3倍に拡大）
+    const paddleDefaultWidth = 300 * scaleX // デフォルト値（元の3倍）
+    const paddleMinWidth = 50 * scaleX // 最小幅（デフォルトの1/6）
     const paddle = {
-      width: 100 * scaleX,
+      width: paddleDefaultWidth,
       height: 15 * scaleY,
-      x: canvas.width / 2 - (50 * scaleX),
+      x: canvas.width / 2 - (150 * scaleX), // 中央配置のためのオフセット調整
       y: canvas.height - (30 * scaleY),
       speed: 8 * scaleX,
       dx: 0
     }
+    
+    // パドル幅アニメーション用の変数
+    let isPressing = false // タッチ/マウスダウン状態
+    const animationDuration = 3000 // アニメーション時間（ミリ秒）
+    let lastAnimationTime = performance.now() // 最後のアニメーション更新時刻
 
     // ボール（パドルの上に配置）
     const ballRadius = 8 * Math.min(scaleX, scaleY)
@@ -215,6 +222,36 @@ export default function Game() {
         paddle.x = canvas.width - paddle.width
       }
     }
+    
+    // パドル幅を更新（タッチ/マウス状態に応じて縮小・拡大）
+    function updatePaddleWidth() {
+      const currentTime = performance.now()
+      const deltaTime = currentTime - lastAnimationTime
+      lastAnimationTime = currentTime
+      
+      // 時間ベースの変化量を計算（ミリ秒あたりの幅の変化）
+      const widthChangeRate = (paddleDefaultWidth - paddleMinWidth) / animationDuration * deltaTime
+      
+      if (isPressing) {
+        // 押している間は縮小
+        if (paddle.width > paddleMinWidth) {
+          const oldWidth = paddle.width
+          paddle.width = Math.max(paddleMinWidth, paddle.width - widthChangeRate)
+          // 幅が変わった分、中心位置を維持するためにx座標を調整
+          paddle.x += (oldWidth - paddle.width) / 2
+          clampPaddlePosition()
+        }
+      } else {
+        // 離している間は拡大
+        if (paddle.width < paddleDefaultWidth) {
+          const oldWidth = paddle.width
+          paddle.width = Math.min(paddleDefaultWidth, paddle.width + widthChangeRate)
+          // 幅が変わった分、中心位置を維持するためにx座標を調整
+          paddle.x -= (paddle.width - oldWidth) / 2
+          clampPaddlePosition()
+        }
+      }
+    }
 
     // ボールを移動
     function moveBall() {
@@ -292,6 +329,9 @@ export default function Game() {
       drawBall()
       drawPaddle()
 
+      // パドル幅を更新（常に実行）
+      updatePaddleWidth()
+
       // プレイ中のみボールとパドルを動かす
       if (gameStateRef.current === 'playing') {
         movePaddle()
@@ -324,6 +364,7 @@ export default function Game() {
       if (e.touches.length === 0) return
       const touch = e.touches[0]
       lastTouchX = touch.clientX
+      isPressing = true // タッチ開始時にパドル縮小を開始
     }
 
     function handleTouchMove(e: TouchEvent) {
@@ -340,6 +381,7 @@ export default function Game() {
     function handleTouchEnd(e: TouchEvent) {
       e.preventDefault()
       lastTouchX = null
+      isPressing = false // タッチ終了時にパドル拡大を開始
     }
 
     // マウス入力（Web/デスクトップ用・ブラウザ全体で操作可能）
@@ -351,6 +393,16 @@ export default function Game() {
       paddle.x = mouseX - paddle.width / 2
       clampPaddlePosition()
     }
+    
+    function handleMouseDown(e: MouseEvent) {
+      e.preventDefault() // デフォルトの動作を防止（テキスト選択など）
+      isPressing = true // マウスダウン時にパドル縮小を開始
+    }
+    
+    function handleMouseUp(e: MouseEvent) {
+      e.preventDefault() // デフォルトの動作を防止
+      isPressing = false // マウスアップ時にパドル拡大を開始
+    }
 
     // イベントリスナー（ブラウザ全体でタッチ操作可能）
     document.addEventListener('touchstart', handleTouchStart, { passive: false })
@@ -359,6 +411,8 @@ export default function Game() {
     
     // マウスイベントリスナー（ブラウザ全体でマウス操作可能）
     document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mousedown', handleMouseDown)
+    document.addEventListener('mouseup', handleMouseUp)
 
     // ゲームループ
     let animationFrameId: number
@@ -378,6 +432,8 @@ export default function Game() {
       document.removeEventListener('touchmove', handleTouchMove)
       document.removeEventListener('touchend', handleTouchEnd)
       document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mousedown', handleMouseDown)
+      document.removeEventListener('mouseup', handleMouseUp)
       window.removeEventListener('resize', resizeCanvas)
       cancelAnimationFrame(animationFrameId)
     }
