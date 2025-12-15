@@ -36,6 +36,7 @@ export default function Game() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
   const [gameStarted, setGameStarted] = useState(false)
+  const gameStartedRef = useRef(false)
   
   // useState with lazy initializer to ensure image selection happens only once
   const [selectedImageUrl] = useState(() => 
@@ -46,6 +47,11 @@ export default function Game() {
   useEffect(() => {
     setIsMobile(isMobileDevice())
   }, [])
+
+  // gameStartedの変化を追跡するためのeffect
+  useEffect(() => {
+    gameStartedRef.current = gameStarted
+  }, [gameStarted])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -313,7 +319,7 @@ export default function Game() {
       drawBall()
       drawPaddle()
 
-      if (gameStarted) {
+      if (gameStartedRef.current) {
         movePaddle()
         moveBall()
         checkBrickCollision()
@@ -387,7 +393,7 @@ export default function Game() {
       window.removeEventListener('resize', resizeCanvas)
       cancelAnimationFrame(animationFrameId)
     }
-  }, [gameStarted])
+  }, [])
 
   // モバイルデバイスチェック中はローディング表示
   if (isMobile === null) {
