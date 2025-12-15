@@ -122,6 +122,9 @@ export default function Game() {
 
     // 残りのブロック数を追跡（パフォーマンス向上のため）
     let remainingBricks = brickInfo.rows * brickInfo.cols
+    
+    // 跳ね返るまでに必要な破壊ブロック数
+    let destroyedBlocksCount = 0
 
     // パドルを描画
     function drawPaddle() {
@@ -210,9 +213,15 @@ export default function Game() {
                 ball.x - ball.radius < brick.x + brickInfo.width && 
                 ball.y + ball.radius > brick.y && 
                 ball.y - ball.radius < brick.y + brickInfo.height) {
-              ball.dy *= -1
               brick.visible = false
               remainingBricks--
+              destroyedBlocksCount++
+
+              // 10個破壊したら跳ね返る
+              if (destroyedBlocksCount >= 10) {
+                ball.dy *= -1
+                destroyedBlocksCount = 0
+              }
 
               // 全てのブロックが破壊されたか確認
               if (remainingBricks === 0) {
