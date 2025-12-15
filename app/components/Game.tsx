@@ -16,6 +16,21 @@ export default function Game() {
     // ゲーム開始フラグ（ローカル変数として管理）
     let gameActive = true
 
+    // 背景画像のURL
+    const BACKGROUND_IMAGE_URL = 'https://assets.st-note.com/production/uploads/images/45054196/rectangle_large_type_2_b981e737a35442958a00bacffee50a60.jpg?width=1280'
+
+    // 背景画像を読み込む
+    const backgroundImage = new Image()
+    let imageLoaded = false
+    backgroundImage.onload = () => {
+      imageLoaded = true
+    }
+    backgroundImage.onerror = () => {
+      console.error('Failed to load background image')
+    }
+    // イベントハンドラを設定した後にsrcを設定（レースコンディションを防ぐ）
+    backgroundImage.src = BACKGROUND_IMAGE_URL
+
     // キャンバスの高さの割合（画面全体の70%）
     const CANVAS_HEIGHT_RATIO = 0.7
 
@@ -146,6 +161,36 @@ export default function Game() {
       ctx.closePath()
     }
 
+    // 背景画像を描画（ブロックが消えるほど見えるようになる）
+    function drawBackgroundImage() {
+      if (!ctx || !canvas || !imageLoaded) return
+      
+      // 画像の寸法が有効かチェック（naturalWidthを使用）
+      if (!backgroundImage.naturalWidth || !backgroundImage.naturalHeight) return
+      
+      // 残りブロックの割合を計算（0.0～1.0）
+      const totalBlocks = brickInfo.rows * brickInfo.cols
+      if (totalBlocks === 0) return
+      
+      const visibleBlockRatio = remainingBricks / totalBlocks
+      
+      // ブロックが消えるほど画像が見えるようにする（透明度を調整）
+      const imageOpacity = 1 - visibleBlockRatio
+      
+      ctx.save()
+      ctx.globalAlpha = imageOpacity
+      
+      // 画像をキャンバスの上部に配置（幅はキャンバスいっぱいに）
+      const imageAspectRatio = backgroundImage.naturalWidth / backgroundImage.naturalHeight
+      const drawWidth = canvas.width
+      const drawHeight = drawWidth / imageAspectRatio
+      
+      // キャンバスの一番上から描画
+      ctx.drawImage(backgroundImage, 0, 0, drawWidth, drawHeight)
+      
+      ctx.restore()
+    }
+
     // ブロックを描画
     function drawBricks() {
       if (!ctx) return
@@ -242,6 +287,7 @@ export default function Game() {
       if (!ctx || !canvas) return
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
+      drawBackgroundImage()
       drawBricks()
       drawBall()
       drawPaddle()
