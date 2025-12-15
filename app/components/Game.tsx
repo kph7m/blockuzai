@@ -95,9 +95,10 @@ export default function Game() {
     
     // パドル幅アニメーション用の変数
     let isPressing = false // タッチ/マウスダウン状態
-    const shrinkDuration = 2000 // 縮小アニメーション時間（ミリ秒）
+    const shrinkDuration = 1500 // 縮小アニメーション時間（ミリ秒）
     const expandDuration = 500 // 拡大アニメーション時間（ミリ秒）
     let lastAnimationTime = performance.now() // 最後のアニメーション更新時刻
+    let isAtMinimumWidth = false // パドルが最小幅かどうか
 
     // ボール（パドルの上に配置）
     const ballRadius = 8 * Math.min(scaleX, scaleY)
@@ -171,12 +172,29 @@ export default function Game() {
       
       // グラデーションを作成（ピンク系の可愛い色）
       const gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.height)
-      gradient.addColorStop(0, '#FFB6D9')  // ライトピンク
-      gradient.addColorStop(1, '#FF69B4')  // ホットピンク
       
-      // 影を追加
-      ctx.shadowColor = 'rgba(255, 105, 180, 0.5)'
-      ctx.shadowBlur = 10 * scaleY
+      // 最小幅の時はピカピカ光らせる（フラッシュエフェクト）
+      if (isAtMinimumWidth) {
+        const flashSpeed = 0.01 // フラッシュの速度
+        const brightness = Math.abs(Math.sin(performance.now() * flashSpeed))
+        const lightness = 0.5 + brightness * 0.5 // 0.5〜1.0の範囲で明るさを変化
+        
+        // より明るいピンク色でフラッシュ
+        gradient.addColorStop(0, `hsl(330, 100%, ${lightness * 85}%)`)  // より明るいライトピンク
+        gradient.addColorStop(1, `hsl(330, 100%, ${lightness * 65}%)`)  // より明るいホットピンク
+        
+        // 影も強くしてピカピカ感を出す
+        ctx.shadowColor = `rgba(255, 105, 180, ${brightness})`
+        ctx.shadowBlur = 20 * scaleY
+      } else {
+        gradient.addColorStop(0, '#FFB6D9')  // ライトピンク
+        gradient.addColorStop(1, '#FF69B4')  // ホットピンク
+        
+        // 通常の影
+        ctx.shadowColor = 'rgba(255, 105, 180, 0.5)'
+        ctx.shadowBlur = 10 * scaleY
+      }
+      
       ctx.shadowOffsetX = 0
       ctx.shadowOffsetY = 4 * scaleY
       
@@ -265,7 +283,7 @@ export default function Game() {
       lastAnimationTime = currentTime
       
       if (isPressing) {
-        // 押している間は縮小（2秒で縮小）
+        // 押している間は縮小（1.5秒で縮小）
         const shrinkRate = (paddleDefaultWidth - paddleMinWidth) / shrinkDuration * deltaTime
         if (paddle.width > paddleMinWidth) {
           const oldWidth = paddle.width
@@ -273,6 +291,9 @@ export default function Game() {
           // 幅が変わった分、中心位置を維持するためにx座標を調整
           paddle.x += (oldWidth - paddle.width) / 2
           clampPaddlePosition()
+          isAtMinimumWidth = false
+        } else {
+          isAtMinimumWidth = true
         }
       } else {
         // 離している間は拡大（0.5秒で拡大）
@@ -284,6 +305,7 @@ export default function Game() {
           paddle.x -= (paddle.width - oldWidth) / 2
           clampPaddlePosition()
         }
+        isAtMinimumWidth = false
       }
     }
 
