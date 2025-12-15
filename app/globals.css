@@ -79,6 +79,32 @@ canvas {
   margin: 10px 0;
 }
 
+/* Startボタンのスタイル */
+.start-button {
+  margin-top: 20px;
+  padding: 15px 50px;
+  font-size: clamp(1.125rem, 4vw, 1.5rem);
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 3px solid white;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+  animation: pulse 2s infinite;
+}
+
+.start-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+.start-button:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+}
+
 /* モバイル向けの追加スタイル */
 @media (max-width: 768px) {
   .container {
@@ -98,5 +124,10 @@ canvas {
   .start-message {
     padding: 12px 30px;
     margin: 15px auto;
+  }
+
+  .start-button {
+    margin-top: 15px;
+    padding: 12px 40px;
   }
 }

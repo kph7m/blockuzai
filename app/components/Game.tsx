@@ -35,6 +35,7 @@ export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
+  const [gameStarted, setGameStarted] = useState(false)
   
   // useState with lazy initializer to ensure image selection happens only once
   const [selectedImageUrl] = useState(() => 
@@ -52,9 +53,6 @@ export default function Game() {
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-    
-    // ゲーム開始フラグ（ローカル変数として管理）
-    let gameActive = true
 
     // 背景画像を読み込む
     const backgroundImage = new Image()
@@ -315,7 +313,7 @@ export default function Game() {
       drawBall()
       drawPaddle()
 
-      if (gameActive) {
+      if (gameStarted) {
         movePaddle()
         moveBall()
         checkBrickCollision()
@@ -389,7 +387,7 @@ export default function Game() {
       window.removeEventListener('resize', resizeCanvas)
       cancelAnimationFrame(animationFrameId)
     }
-  }, [])
+  }, [gameStarted])
 
   // モバイルデバイスチェック中はローディング表示
   if (isMobile === null) {
@@ -418,6 +416,14 @@ export default function Game() {
   return (
     <div className="container" ref={containerRef}>
       <canvas ref={canvasRef} id="gameCanvas"></canvas>
+      {!gameStarted && (
+        <button 
+          className="start-button"
+          onClick={() => setGameStarted(true)}
+        >
+          Start
+        </button>
+      )}
     </div>
   )
 }
