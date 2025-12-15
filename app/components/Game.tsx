@@ -95,7 +95,8 @@ export default function Game() {
     
     // パドル幅アニメーション用の変数
     let isPressing = false // タッチ/マウスダウン状態
-    let paddleWidthChangeRate = (paddleDefaultWidth - paddleMinWidth) / (3 * 60) // 3秒（60fps想定）で変化する量
+    const animationDuration = 3000 // アニメーション時間（ミリ秒）
+    let lastAnimationTime = performance.now() // 最後のアニメーション更新時刻
 
     // ボール（パドルの上に配置）
     const ballRadius = 8 * Math.min(scaleX, scaleY)
@@ -224,11 +225,18 @@ export default function Game() {
     
     // パドル幅を更新（タッチ/マウス状態に応じて縮小・拡大）
     function updatePaddleWidth() {
+      const currentTime = performance.now()
+      const deltaTime = currentTime - lastAnimationTime
+      lastAnimationTime = currentTime
+      
+      // 時間ベースの変化量を計算（ミリ秒あたりの幅の変化）
+      const widthChangeRate = (paddleDefaultWidth - paddleMinWidth) / animationDuration * deltaTime
+      
       if (isPressing) {
         // 押している間は縮小
         if (paddle.width > paddleMinWidth) {
           const oldWidth = paddle.width
-          paddle.width = Math.max(paddleMinWidth, paddle.width - paddleWidthChangeRate)
+          paddle.width = Math.max(paddleMinWidth, paddle.width - widthChangeRate)
           // 幅が変わった分、中心位置を維持するためにx座標を調整
           paddle.x += (oldWidth - paddle.width) / 2
           clampPaddlePosition()
@@ -237,7 +245,7 @@ export default function Game() {
         // 離している間は拡大
         if (paddle.width < paddleDefaultWidth) {
           const oldWidth = paddle.width
-          paddle.width = Math.min(paddleDefaultWidth, paddle.width + paddleWidthChangeRate)
+          paddle.width = Math.min(paddleDefaultWidth, paddle.width + widthChangeRate)
           // 幅が変わった分、中心位置を維持するためにx座標を調整
           paddle.x -= (paddle.width - oldWidth) / 2
           clampPaddlePosition()
@@ -387,10 +395,12 @@ export default function Game() {
     }
     
     function handleMouseDown(e: MouseEvent) {
+      e.preventDefault() // デフォルトの動作を防止（テキスト選択など）
       isPressing = true // マウスダウン時にパドル縮小を開始
     }
     
     function handleMouseUp(e: MouseEvent) {
+      e.preventDefault() // デフォルトの動作を防止
       isPressing = false // マウスアップ時にパドル拡大を開始
     }
 
