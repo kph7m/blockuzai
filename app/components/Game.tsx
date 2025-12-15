@@ -95,7 +95,8 @@ export default function Game() {
     
     // パドル幅アニメーション用の変数
     let isPressing = false // タッチ/マウスダウン状態
-    const animationDuration = 3000 // アニメーション時間（ミリ秒）
+    const shrinkDuration = 2000 // 縮小アニメーション時間（ミリ秒）
+    const expandDuration = 500 // 拡大アニメーション時間（ミリ秒）
     let lastAnimationTime = performance.now() // 最後のアニメーション更新時刻
 
     // ボール（パドルの上に配置）
@@ -164,8 +165,42 @@ export default function Game() {
     // パドルを描画
     function drawPaddle() {
       if (!ctx) return
-      ctx.fillStyle = '#000'
-      ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height)
+      
+      // 角丸の半径
+      const borderRadius = 8 * scaleY
+      
+      // グラデーションを作成（ピンク系の可愛い色）
+      const gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.height)
+      gradient.addColorStop(0, '#FFB6D9')  // ライトピンク
+      gradient.addColorStop(1, '#FF69B4')  // ホットピンク
+      
+      // 影を追加
+      ctx.shadowColor = 'rgba(255, 105, 180, 0.5)'
+      ctx.shadowBlur = 10 * scaleY
+      ctx.shadowOffsetX = 0
+      ctx.shadowOffsetY = 4 * scaleY
+      
+      // 角丸四角形を描画
+      ctx.beginPath()
+      ctx.moveTo(paddle.x + borderRadius, paddle.y)
+      ctx.lineTo(paddle.x + paddle.width - borderRadius, paddle.y)
+      ctx.quadraticCurveTo(paddle.x + paddle.width, paddle.y, paddle.x + paddle.width, paddle.y + borderRadius)
+      ctx.lineTo(paddle.x + paddle.width, paddle.y + paddle.height - borderRadius)
+      ctx.quadraticCurveTo(paddle.x + paddle.width, paddle.y + paddle.height, paddle.x + paddle.width - borderRadius, paddle.y + paddle.height)
+      ctx.lineTo(paddle.x + borderRadius, paddle.y + paddle.height)
+      ctx.quadraticCurveTo(paddle.x, paddle.y + paddle.height, paddle.x, paddle.y + paddle.height - borderRadius)
+      ctx.lineTo(paddle.x, paddle.y + borderRadius)
+      ctx.quadraticCurveTo(paddle.x, paddle.y, paddle.x + borderRadius, paddle.y)
+      ctx.closePath()
+      
+      ctx.fillStyle = gradient
+      ctx.fill()
+      
+      // 影をリセット
+      ctx.shadowColor = 'transparent'
+      ctx.shadowBlur = 0
+      ctx.shadowOffsetX = 0
+      ctx.shadowOffsetY = 0
     }
 
     // ボールを描画
@@ -229,23 +264,22 @@ export default function Game() {
       const deltaTime = currentTime - lastAnimationTime
       lastAnimationTime = currentTime
       
-      // 時間ベースの変化量を計算（ミリ秒あたりの幅の変化）
-      const widthChangeRate = (paddleDefaultWidth - paddleMinWidth) / animationDuration * deltaTime
-      
       if (isPressing) {
-        // 押している間は縮小
+        // 押している間は縮小（2秒で縮小）
+        const shrinkRate = (paddleDefaultWidth - paddleMinWidth) / shrinkDuration * deltaTime
         if (paddle.width > paddleMinWidth) {
           const oldWidth = paddle.width
-          paddle.width = Math.max(paddleMinWidth, paddle.width - widthChangeRate)
+          paddle.width = Math.max(paddleMinWidth, paddle.width - shrinkRate)
           // 幅が変わった分、中心位置を維持するためにx座標を調整
           paddle.x += (oldWidth - paddle.width) / 2
           clampPaddlePosition()
         }
       } else {
-        // 離している間は拡大
+        // 離している間は拡大（0.5秒で拡大）
+        const expandRate = (paddleDefaultWidth - paddleMinWidth) / expandDuration * deltaTime
         if (paddle.width < paddleDefaultWidth) {
           const oldWidth = paddle.width
-          paddle.width = Math.min(paddleDefaultWidth, paddle.width + widthChangeRate)
+          paddle.width = Math.min(paddleDefaultWidth, paddle.width + expandRate)
           // 幅が変わった分、中心位置を維持するためにx座標を調整
           paddle.x -= (paddle.width - oldWidth) / 2
           clampPaddlePosition()
