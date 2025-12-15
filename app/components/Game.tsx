@@ -9,14 +9,42 @@ const BACKGROUND_IMAGE_URLS = [
   'https://assets.st-note.com/production/uploads/images/44257592/picture_pc_cc80e1193bfb0a4bc22a0a0e9288d044.jpg?width=1200'
 ]
 
+// モバイルデバイスかどうかを判定する関数
+function isMobileDevice(): boolean {
+  if (typeof window === 'undefined') return false
+  
+  // User Agentでモバイルデバイスを判定（最優先）
+  // モバイルデバイスのUser Agentが検出された場合は即座にtrueを返す
+  const userAgent = navigator.userAgent || navigator.vendor || ''
+  const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i
+  
+  if (mobileRegex.test(userAgent.toLowerCase())) {
+    return true
+  }
+  
+  // User Agentでモバイルと判定できない場合、
+  // タッチデバイスかつ画面幅が768px以下の場合をモバイルと判定
+  // （タブレットや小型タッチスクリーンデバイスに対応）
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+  const isSmallScreen = window.innerWidth <= 768
+  
+  return isTouchDevice && isSmallScreen
+}
+
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [isMobile, setIsMobile] = useState<boolean | null>(null)
   
   // useState with lazy initializer to ensure image selection happens only once
   const [selectedImageUrl] = useState(() => 
     BACKGROUND_IMAGE_URLS[Math.floor(Math.random() * BACKGROUND_IMAGE_URLS.length)]
   )
+
+  // モバイルデバイスチェック
+  useEffect(() => {
+    setIsMobile(isMobileDevice())
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -362,6 +390,30 @@ export default function Game() {
       cancelAnimationFrame(animationFrameId)
     }
   }, [])
+
+  // モバイルデバイスチェック中はローディング表示
+  if (isMobile === null) {
+    return (
+      <div className="container" ref={containerRef}>
+        <div className="mobile-only-message">
+          <p>読み込み中...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // モバイルデバイス以外はメッセージを表示
+  if (!isMobile) {
+    return (
+      <div className="container" ref={containerRef}>
+        <div className="mobile-only-message">
+          <h1>📱 スマートフォン専用ゲームです</h1>
+          <p>このゲームはスマートフォンでのみプレイできます。</p>
+          <p>スマートフォンからアクセスしてください。</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="container" ref={containerRef}>
