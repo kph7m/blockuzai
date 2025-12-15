@@ -80,6 +80,9 @@ export default function Game() {
     // ブロックがCanvasの縦方向に占める割合
     const BLOCKS_FILL_RATIO = 0.7
     
+    // ボールが跳ね返るまでに必要な破壊ブロック数
+    const BLOCKS_TO_DESTROY_BEFORE_BOUNCE = 10
+    
     // ブロック
     const brickInfo = {
       cols: 30, // 列数を2倍にしてブロックサイズを維持したまま横幅100%を埋める
@@ -122,6 +125,9 @@ export default function Game() {
 
     // 残りのブロック数を追跡（パフォーマンス向上のため）
     let remainingBricks = brickInfo.rows * brickInfo.cols
+    
+    // 跳ね返るまでに必要な破壊ブロック数
+    let destroyedBlocksCount = 0
 
     // パドルを描画
     function drawPaddle() {
@@ -210,9 +216,15 @@ export default function Game() {
                 ball.x - ball.radius < brick.x + brickInfo.width && 
                 ball.y + ball.radius > brick.y && 
                 ball.y - ball.radius < brick.y + brickInfo.height) {
-              ball.dy *= -1
               brick.visible = false
               remainingBricks--
+              destroyedBlocksCount++
+
+              // 10個破壊したら跳ね返る
+              if (destroyedBlocksCount >= BLOCKS_TO_DESTROY_BEFORE_BOUNCE) {
+                ball.dy *= -1
+                destroyedBlocksCount = 0
+              }
 
               // 全てのブロックが破壊されたか確認
               if (remainingBricks === 0) {
