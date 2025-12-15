@@ -80,6 +80,9 @@ export default function Game() {
     // ブロックがCanvasの縦方向に占める割合
     const BLOCKS_FILL_RATIO = 0.7
     
+    // ボールが跳ね返るまでに必要な破壊ブロック数
+    const BLOCKS_TO_DESTROY_BEFORE_BOUNCE = 10
+    
     // ブロック
     const brickInfo = {
       cols: 30, // 列数を2倍にしてブロックサイズを維持したまま横幅100%を埋める
@@ -218,7 +221,7 @@ export default function Game() {
               destroyedBlocksCount++
 
               // 10個破壊したら跳ね返る
-              if (destroyedBlocksCount >= 10) {
+              if (destroyedBlocksCount >= BLOCKS_TO_DESTROY_BEFORE_BOUNCE) {
                 ball.dy *= -1
                 destroyedBlocksCount = 0
               }
