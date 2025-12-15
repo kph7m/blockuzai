@@ -2,9 +2,21 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+// 背景画像のURLリスト（ランダムに1つ選択される）
+const BACKGROUND_IMAGE_URLS = [
+  'https://assets.st-note.com/production/uploads/images/45054196/rectangle_large_type_2_b981e737a35442958a00bacffee50a60.jpg?width=1280',
+  'https://assets.st-note.com/production/uploads/images/44257653/picture_pc_8bd46374d608e955fe6bfaeb6f0696ca.jpg?width=1200',
+  'https://assets.st-note.com/production/uploads/images/44257592/picture_pc_cc80e1193bfb0a4bc22a0a0e9288d044.jpg?width=1200'
+]
+
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  
+  // useState with lazy initializer to ensure image selection happens only once
+  const [selectedImageUrl] = useState(() => 
+    BACKGROUND_IMAGE_URLS[Math.floor(Math.random() * BACKGROUND_IMAGE_URLS.length)]
+  )
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -16,9 +28,6 @@ export default function Game() {
     // ゲーム開始フラグ（ローカル変数として管理）
     let gameActive = true
 
-    // 背景画像のURL
-    const BACKGROUND_IMAGE_URL = 'https://assets.st-note.com/production/uploads/images/45054196/rectangle_large_type_2_b981e737a35442958a00bacffee50a60.jpg?width=1280'
-
     // 背景画像を読み込む
     const backgroundImage = new Image()
     let imageLoaded = false
@@ -29,7 +38,7 @@ export default function Game() {
       console.error('Failed to load background image')
     }
     // イベントハンドラを設定した後にsrcを設定（レースコンディションを防ぐ）
-    backgroundImage.src = BACKGROUND_IMAGE_URL
+    backgroundImage.src = selectedImageUrl
 
     // キャンバスの高さの割合（画面全体の70%）
     const CANVAS_HEIGHT_RATIO = 0.7
