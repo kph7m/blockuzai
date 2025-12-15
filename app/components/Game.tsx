@@ -81,7 +81,7 @@ export default function Game() {
     const BLOCKS_FILL_RATIO = 0.7
     
     // ボールが跳ね返るまでに必要な破壊ブロック数
-    const BLOCKS_TO_DESTROY_BEFORE_BOUNCE = 10
+    const BLOCKS_TO_DESTROY_BEFORE_BOUNCE = 30
     
     // ブロック
     const brickInfo = {
@@ -220,7 +220,7 @@ export default function Game() {
               remainingBricks--
               destroyedBlocksCount++
 
-              // 10個破壊したら跳ね返る
+              // 30個破壊したら跳ね返る
               if (destroyedBlocksCount >= BLOCKS_TO_DESTROY_BEFORE_BOUNCE) {
                 ball.dy *= -1
                 destroyedBlocksCount = 0
