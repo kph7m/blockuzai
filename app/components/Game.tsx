@@ -99,14 +99,29 @@ export default function Game() {
     const expandDuration = 500 // 拡大アニメーション時間（ミリ秒）
     let lastAnimationTime = performance.now() // 最後のアニメーション更新時刻
     let isAtMinimumWidth = false // パドルが最小幅かどうか
+    
+    // ボール発射エフェクト用の変数
+    type LaunchParticle = {
+      x: number
+      y: number
+      vx: number
+      vy: number
+      life: number
+      maxLife: number
+      size: number
+    }
+    let launchParticles: LaunchParticle[] = [] // 発射エフェクトのパーティクル配列
+    let showLaunchFlash = false // 発射時のフラッシュエフェクト表示フラグ
+    let launchFlashOpacity = 0 // フラッシュの不透明度
 
     // ボール（パドルの上に配置）
     const ballRadius = 8 * Math.min(scaleX, scaleY)
+    const baseSpeed = 4 * Math.min(scaleX, scaleY) // 基本速度
     const ball = {
       x: paddle.x + paddle.width / 2,
       y: paddle.y - ballRadius,
       radius: ballRadius,
-      speed: 4 * Math.min(scaleX, scaleY),
+      speed: baseSpeed,
       dx: 4 * scaleX,
       dy: -4 * scaleY
     }
@@ -244,6 +259,100 @@ export default function Game() {
       ctx.fill()
       ctx.closePath()
     }
+    
+    // 発射エフェクトのパーティクルを生成
+    function createLaunchParticles() {
+      const particleCount = 30 // パーティクルの数
+      const baseAngle = -Math.PI / 2 // 上向き（90度）
+      const spreadAngle = Math.PI / 3 // 60度の範囲に広がる
+      
+      for (let i = 0; i < particleCount; i++) {
+        // ランダムな角度（上方向を中心に扇形に広がる）
+        const angle = baseAngle + (Math.random() - 0.5) * spreadAngle
+        // ランダムな速度
+        const speed = (2 + Math.random() * 4) * scaleX
+        
+        launchParticles.push({
+          x: ball.x,
+          y: ball.y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1.0,
+          maxLife: 0.5 + Math.random() * 0.5, // 0.5-1.0秒のライフタイム
+          size: (2 + Math.random() * 3) * scaleX
+        })
+      }
+      
+      // フラッシュエフェクトを開始
+      showLaunchFlash = true
+      launchFlashOpacity = 1.0
+    }
+    
+    // 発射エフェクトのパーティクルを更新・描画
+    function updateAndDrawLaunchParticles() {
+      if (!ctx) return
+      
+      // パーティクルを更新
+      launchParticles = launchParticles.filter(particle => {
+        // 位置を更新
+        particle.x += particle.vx
+        particle.y += particle.vy
+        // 重力効果を追加
+        particle.vy += 0.2 * scaleY
+        // ライフタイムを減少
+        particle.life -= 0.016 / particle.maxLife // 約60FPSを想定
+        
+        // ライフタイムが残っているパーティクルのみ保持
+        return particle.life > 0
+      })
+      
+      // パーティクルを描画
+      launchParticles.forEach(particle => {
+        ctx.globalAlpha = particle.life
+        ctx.beginPath()
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+        // ピンク系のグラデーションカラー
+        const gradient = ctx.createRadialGradient(
+          particle.x, particle.y, 0,
+          particle.x, particle.y, particle.size
+        )
+        gradient.addColorStop(0, '#FFD700') // ゴールド
+        gradient.addColorStop(0.5, '#FF69B4') // ホットピンク
+        gradient.addColorStop(1, '#FF1493') // ディープピンク
+        ctx.fillStyle = gradient
+        ctx.fill()
+        ctx.closePath()
+      })
+      ctx.globalAlpha = 1.0
+      
+      // フラッシュエフェクトを描画
+      if (showLaunchFlash && launchFlashOpacity > 0) {
+        ctx.globalAlpha = launchFlashOpacity
+        // ボールの周りに光の輪を描画
+        const flashRadius = ball.radius * 4
+        const flashGradient = ctx.createRadialGradient(
+          ball.x, ball.y, ball.radius,
+          ball.x, ball.y, flashRadius
+        )
+        flashGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)')
+        flashGradient.addColorStop(0.3, 'rgba(255, 215, 0, 0.6)')
+        flashGradient.addColorStop(0.6, 'rgba(255, 105, 180, 0.3)')
+        flashGradient.addColorStop(1, 'rgba(255, 20, 147, 0)')
+        
+        ctx.beginPath()
+        ctx.arc(ball.x, ball.y, flashRadius, 0, Math.PI * 2)
+        ctx.fillStyle = flashGradient
+        ctx.fill()
+        ctx.closePath()
+        
+        // フラッシュを徐々に消す
+        launchFlashOpacity -= 0.05
+        if (launchFlashOpacity <= 0) {
+          showLaunchFlash = false
+        }
+      }
+      ctx.globalAlpha = 1.0
+    }
 
     // 背景画像を描画
     function drawBackgroundImage() {
@@ -352,6 +461,8 @@ export default function Game() {
         // ボールをリセット（パドルの上に配置）
         ball.x = paddle.x + paddle.width / 2
         ball.y = paddle.y - ball.radius
+        // 速度を基本速度にリセット
+        ball.speed = baseSpeed
         ball.dx = 4 * scaleX
         ball.dy = -4 * scaleY
         // ゲームを待機状態に戻す
@@ -402,15 +513,35 @@ export default function Game() {
       drawBricks()
       drawBall()
       drawPaddle()
+      
+      // 発射エフェクトを描画・更新
+      updateAndDrawLaunchParticles()
 
       // パドル幅を更新（常に実行）
       updatePaddleWidth()
 
       // プレイ中のみボールとパドルを動かす
       if (gameStateRef.current === 'playing') {
-        // waiting -> playing に遷移した直後に貫通力を記録
+        // waiting -> playing に遷移した直後に貫通力を記録し、速度調整とエフェクトを実行
         if (previousGameState === 'waiting') {
           currentPenetrationPower = getPenetrationPower()
+          
+          // パドルが最小幅の場合、ボール速度を1.2倍にする
+          if (isAtMinimumWidth) {
+            const speedMultiplier = 1.2
+            ball.speed = baseSpeed * speedMultiplier
+            ball.dx = (ball.dx / Math.abs(ball.dx)) * ball.speed * scaleX / Math.min(scaleX, scaleY)
+            ball.dy = (ball.dy / Math.abs(ball.dy)) * ball.speed * scaleY / Math.min(scaleX, scaleY)
+          } else {
+            // 通常速度に戻す
+            ball.speed = baseSpeed
+            ball.dx = (ball.dx / Math.abs(ball.dx)) * ball.speed * scaleX / Math.min(scaleX, scaleY)
+            ball.dy = (ball.dy / Math.abs(ball.dy)) * ball.speed * scaleY / Math.min(scaleX, scaleY)
+          }
+          
+          // 発射エフェクトを生成
+          createLaunchParticles()
+          
           previousGameState = 'playing'
         }
         
