@@ -524,13 +524,13 @@ export default function Game() {
         // 打ち出し角度を計算（中心: 90度、端: 30度または150度）
         // カーブに沿った角度になるように調整
         const baseAngle = Math.PI / 2 // 90度（真上）
-        const maxAngleDeviation = Math.PI / 3 // 60度の範囲（±30度）
+        const maxAngleDeviation = Math.PI / 3 // ±60度の偏差範囲（左端: 30度、右端: 150度）
         const angle = baseAngle + hitPosition * maxAngleDeviation
         
         // 速度を角度に応じて設定
         const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy)
         ball.dx = Math.cos(angle) * speed
-        ball.dy = -Math.abs(Math.sin(angle) * speed) // 常に上向き
+        ball.dy = Math.sin(angle) * speed // 角度計算で既に上向きが保証されている
         
         // ボールを弾く度に発射エフェクトを生成（現在の貫通力に基づく）
         createLaunchParticles(currentPenetrationPower)
