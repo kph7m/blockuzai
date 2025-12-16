@@ -170,6 +170,12 @@ export default function Game() {
     
     // 跳ね返るまでに必要な破壊ブロック数
     let destroyedBlocksCount = 0
+    
+    // 打ち出し時の貫通力を保持（打ち出し後は変わらない）
+    let currentPenetrationPower = getPenetrationPower()
+    
+    // 前のゲーム状態を追跡（状態変化を検出するため）
+    let previousGameState: 'waiting' | 'playing' = 'waiting'
 
     // パドルを描画
     function drawPaddle() {
@@ -338,6 +344,7 @@ export default function Game() {
         ball.dy *= -1
         ball.y = paddle.y - ball.radius
         destroyedBlocksCount = 0 // パドルに当たったらカウントをリセット
+        currentPenetrationPower = getPenetrationPower() // パドルに当たった時の貫通力を記録
       }
 
       // 底に落ちた場合
@@ -355,9 +362,6 @@ export default function Game() {
 
     // ブロックとの衝突判定
     function checkBrickCollision() {
-      // 貫通力を計算（ループ外で1回のみ計算してパフォーマンス向上）
-      const penetrationPower = getPenetrationPower()
-      
       bricks.forEach(row => {
         row.forEach(brick => {
           if (brick.visible) {
@@ -370,7 +374,7 @@ export default function Game() {
               destroyedBlocksCount++
 
               // 貫通力の分だけブロックを破壊したら跳ね返る
-              if (destroyedBlocksCount >= penetrationPower) {
+              if (destroyedBlocksCount >= currentPenetrationPower) {
                 ball.dy *= -1
                 destroyedBlocksCount = 0
               }
@@ -401,9 +405,17 @@ export default function Game() {
 
       // プレイ中のみボールとパドルを動かす
       if (gameStateRef.current === 'playing') {
+        // waiting -> playing に遷移した直後に貫通力を記録
+        if (previousGameState === 'waiting') {
+          currentPenetrationPower = getPenetrationPower()
+          previousGameState = 'playing'
+        }
+        
         movePaddle()
         moveBall()
         checkBrickCollision()
+      } else if (gameStateRef.current === 'waiting') {
+        previousGameState = 'waiting'
       }
     }
 
