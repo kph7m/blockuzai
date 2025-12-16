@@ -224,8 +224,14 @@ export default function Game() {
       // 角丸の半径
       const borderRadius = 8 * scaleY
       
-      // カーブの高さ（パドルの高さの半分程度、上方向にカーブ）
-      const curveHeight = paddle.height * 0.4
+      // カーブの高さ（貫通力に応じて変化：貫通力が高いほどカーブが小さくなる）
+      // 貫通力10（最小）の時：パドル高さの1.5倍のカーブ
+      // 貫通力100（最大）の時：パドル高さの0.3倍のカーブ
+      const penetrationPower = getPenetrationPower()
+      const powerRatio = (penetrationPower - MIN_PENETRATION_POWER) / (MAX_PENETRATION_POWER - MIN_PENETRATION_POWER)
+      const maxCurveHeight = paddle.height * 1.5 // 最大カーブ高さ
+      const minCurveHeight = paddle.height * 0.3 // 最小カーブ高さ
+      const curveHeight = maxCurveHeight - powerRatio * (maxCurveHeight - minCurveHeight)
       
       // グラデーションを作成（ピンク系の可愛い色）
       const gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.height)
@@ -510,6 +516,21 @@ export default function Game() {
         ball.y = paddle.y - ball.radius
         destroyedBlocksCount = 0 // パドルに当たったらカウントをリセット
         currentPenetrationPower = getPenetrationPower() // パドルに当たった時の貫通力を記録
+        
+        // ボールがパドルに当たった位置から打ち出し角を計算
+        // パドルの中心からの相対位置を計算（-1.0〜1.0の範囲）
+        const hitPosition = (ball.x - (paddle.x + paddle.width / 2)) / (paddle.width / 2)
+        
+        // 打ち出し角度を計算（中心: 90度、端: 30度または150度）
+        // カーブに沿った角度になるように調整
+        const baseAngle = Math.PI / 2 // 90度（真上）
+        const maxAngleDeviation = Math.PI / 3 // ±60度の偏差範囲（左端: 30度、右端: 150度）
+        const angle = baseAngle + hitPosition * maxAngleDeviation
+        
+        // 速度を角度に応じて設定
+        const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy)
+        ball.dx = Math.cos(angle) * speed
+        ball.dy = -Math.sin(angle) * speed // Canvas座標系では上向きは負の値
         
         // ボールを弾く度に発射エフェクトを生成（現在の貫通力に基づく）
         createLaunchParticles(currentPenetrationPower)
