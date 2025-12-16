@@ -100,6 +100,7 @@ export default function Game() {
     const minWidthTolerance = 0.1 // 最小幅判定の許容誤差（ピクセル）
     let lastAnimationTime = performance.now() // 最後のアニメーション更新時刻
     let isAtMinimumWidth = false // パドルが最小幅かどうか
+    let wasReleasedAtMinWidth = false // リリース時にパドルが最小幅だったかどうか
     
     // ボール発射エフェクト用の変数
     type LaunchParticle = {
@@ -559,10 +560,9 @@ export default function Game() {
         if (previousGameState === 'waiting') {
           currentPenetrationPower = getPenetrationPower()
           
-          // パドルが最小幅の場合、ボール速度を1.2倍にする
-          // 注意: isAtMinimumWidthフラグはリリース時にfalseになるため、直接パドル幅をチェック
-          const isLaunchingAtMinWidth = Math.abs(paddle.width - paddleMinWidth) < minWidthTolerance
-          if (isLaunchingAtMinWidth) {
+          // リリース時にパドルが最小幅だった場合、ボール速度を1.2倍にする
+          // 注意: リリース後パドルが拡大を開始するため、リリース時点の状態を使用
+          if (wasReleasedAtMinWidth) {
             const speedMultiplier = 1.2
             ball.speed = baseSpeed * speedMultiplier
             setBallVelocity(ball.speed)
@@ -574,6 +574,9 @@ export default function Game() {
           
           // 発射エフェクトを生成
           createLaunchParticles()
+          
+          // フラグをリセット
+          wasReleasedAtMinWidth = false
           
           previousGameState = 'playing'
         }
@@ -628,6 +631,8 @@ export default function Game() {
       e.preventDefault()
       lastTouchX = null
       isPressing = false // タッチ終了時にパドル拡大を開始
+      // リリース時点でパドルが最小幅かどうかを記録
+      wasReleasedAtMinWidth = Math.abs(paddle.width - paddleMinWidth) < minWidthTolerance
     }
 
     // マウス入力（Web/デスクトップ用・ブラウザ全体で操作可能）
@@ -648,6 +653,8 @@ export default function Game() {
     function handleMouseUp(e: MouseEvent) {
       e.preventDefault() // デフォルトの動作を防止
       isPressing = false // マウスアップ時にパドル拡大を開始
+      // リリース時点でパドルが最小幅かどうかを記録
+      wasReleasedAtMinWidth = Math.abs(paddle.width - paddleMinWidth) < minWidthTolerance
     }
 
     // イベントリスナー（ブラウザ全体でタッチ操作可能）
