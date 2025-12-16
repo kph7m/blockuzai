@@ -191,6 +191,21 @@ export default function Game() {
     
     // 前のゲーム状態を追跡（状態変化を検出するため）
     let previousGameState: 'waiting' | 'playing' = 'waiting'
+    
+    // ボールの速度を設定するヘルパー関数（ゼロ除算を回避）
+    function setBallVelocity(speed: number) {
+      if (ball.dx !== 0) {
+        ball.dx = (ball.dx / Math.abs(ball.dx)) * speed * scaleX / Math.min(scaleX, scaleY)
+      } else {
+        ball.dx = speed * scaleX / Math.min(scaleX, scaleY)
+      }
+      
+      if (ball.dy !== 0) {
+        ball.dy = (ball.dy / Math.abs(ball.dy)) * speed * scaleY / Math.min(scaleX, scaleY)
+      } else {
+        ball.dy = -speed * scaleY / Math.min(scaleX, scaleY) // デフォルトは上向き
+      }
+    }
 
     // パドルを描画
     function drawPaddle() {
@@ -288,23 +303,33 @@ export default function Game() {
       launchFlashOpacity = 1.0
     }
     
+    // フレーム間の経過時間を追跡（フレームレート非依存のアニメーション用）
+    let lastFrameTime = performance.now()
+    
     // 発射エフェクトのパーティクルを更新・描画
     function updateAndDrawLaunchParticles() {
       if (!ctx) return
       
-      // パーティクルを更新
-      launchParticles = launchParticles.filter(particle => {
+      const currentTime = performance.now()
+      const deltaTime = (currentTime - lastFrameTime) / 1000 // 秒単位に変換
+      lastFrameTime = currentTime
+      
+      // パーティクルを更新（効率的に配列を更新）
+      for (let i = launchParticles.length - 1; i >= 0; i--) {
+        const particle = launchParticles[i]
         // 位置を更新
-        particle.x += particle.vx
-        particle.y += particle.vy
+        particle.x += particle.vx * deltaTime * 60 // 60FPSを基準にスケール
+        particle.y += particle.vy * deltaTime * 60
         // 重力効果を追加
-        particle.vy += 0.2 * scaleY
+        particle.vy += 0.2 * scaleY * deltaTime * 60
         // ライフタイムを減少
-        particle.life -= 0.016 / particle.maxLife // 約60FPSを想定
+        particle.life -= deltaTime / particle.maxLife
         
-        // ライフタイムが残っているパーティクルのみ保持
-        return particle.life > 0
-      })
+        // ライフタイムが0以下になったパーティクルを削除
+        if (particle.life <= 0) {
+          launchParticles.splice(i, 1)
+        }
+      }
       
       // パーティクルを描画
       launchParticles.forEach(particle => {
@@ -530,13 +555,11 @@ export default function Game() {
           if (isAtMinimumWidth) {
             const speedMultiplier = 1.2
             ball.speed = baseSpeed * speedMultiplier
-            ball.dx = (ball.dx / Math.abs(ball.dx)) * ball.speed * scaleX / Math.min(scaleX, scaleY)
-            ball.dy = (ball.dy / Math.abs(ball.dy)) * ball.speed * scaleY / Math.min(scaleX, scaleY)
+            setBallVelocity(ball.speed)
           } else {
             // 通常速度に戻す
             ball.speed = baseSpeed
-            ball.dx = (ball.dx / Math.abs(ball.dx)) * ball.speed * scaleX / Math.min(scaleX, scaleY)
-            ball.dy = (ball.dy / Math.abs(ball.dy)) * ball.speed * scaleY / Math.min(scaleX, scaleY)
+            setBallVelocity(ball.speed)
           }
           
           // 発射エフェクトを生成
