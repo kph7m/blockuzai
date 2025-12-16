@@ -113,6 +113,18 @@ export default function Game() {
     let launchParticles: LaunchParticle[] = [] // 発射エフェクトのパーティクル配列
     let showLaunchFlash = false // 発射時のフラッシュエフェクト表示フラグ
     let launchFlashOpacity = 0 // フラッシュの不透明度
+    
+    // 貫通力Max時の特別なエフェクト用の変数
+    type MaxPenetrationParticle = {
+      x: number
+      y: number
+      angle: number
+      speed: number
+      life: number
+      size: number
+    }
+    let maxPenetrationParticles: MaxPenetrationParticle[] = [] // 貫通力Max時のパーティクル配列
+    let showMaxPenetrationAura = false // 貫通力Max時のオーラ表示フラグ
 
     // ボール（パドルの上に配置）
     const ballRadius = 8 * Math.min(scaleX, scaleY)
@@ -129,15 +141,19 @@ export default function Game() {
     // ブロックがCanvasの縦方向に占める割合
     const BLOCKS_FILL_RATIO = 0.7
     
+    // 貫通力の定数
+    const MIN_PENETRATION_POWER = 10 // 最小貫通力（パドルが最大幅の時）
+    const MAX_PENETRATION_POWER = 100 // 最大貫通力（パドルが最小幅の時）
+    
     // 貫通力の計算（パドル幅に応じて動的に変化）
     // 最大幅: 10, 最小幅: 100
     function getPenetrationPower(): number {
       // パドル幅の範囲を0-1に正規化
       const widthRange = paddleDefaultWidth - paddleMinWidth
-      if (widthRange === 0) return 10 // 安全性チェック: 除算エラーを防ぐ
+      if (widthRange === 0) return MIN_PENETRATION_POWER // 安全性チェック: 除算エラーを防ぐ
       const widthRatio = (paddle.width - paddleMinWidth) / widthRange
       // 逆比例: 幅が大きいほど貫通力が小さく、幅が小さいほど貫通力が大きい
-      return Math.round(10 + (1 - widthRatio) * 90)
+      return Math.round(MIN_PENETRATION_POWER + (1 - widthRatio) * (MAX_PENETRATION_POWER - MIN_PENETRATION_POWER))
     }
     
     // ブロック
@@ -304,6 +320,97 @@ export default function Game() {
       // フラッシュエフェクトを開始
       showLaunchFlash = true
       launchFlashOpacity = 1.0
+    }
+    
+    // 貫通力Max時の特別なエフェクトを生成
+    function createMaxPenetrationEffect() {
+      const particleCount = 40 // パーティクルの数
+      
+      for (let i = 0; i < particleCount; i++) {
+        // 円形に広がるパーティクル
+        const angle = (Math.PI * 2 / particleCount) * i
+        const speed = (3 + Math.random() * 2) * scaleX
+        
+        maxPenetrationParticles.push({
+          x: ball.x,
+          y: ball.y,
+          angle: angle,
+          speed: speed,
+          life: 1.0,
+          size: (3 + Math.random() * 4) * scaleX
+        })
+      }
+      
+      // オーラエフェクトを開始
+      showMaxPenetrationAura = true
+    }
+    
+    // 貫通力Max時のエフェクトを更新・描画
+    function updateAndDrawMaxPenetrationEffect() {
+      if (!ctx) return
+      
+      const currentTime = performance.now()
+      const deltaTime = (currentTime - lastFrameTime) / 1000
+      
+      // パーティクルを更新
+      for (let i = maxPenetrationParticles.length - 1; i >= 0; i--) {
+        const particle = maxPenetrationParticles[i]
+        // 位置を更新（円形に広がる）
+        particle.x += Math.cos(particle.angle) * particle.speed * deltaTime * TARGET_FPS
+        particle.y += Math.sin(particle.angle) * particle.speed * deltaTime * TARGET_FPS
+        // ライフタイムを減少
+        particle.life -= deltaTime / 0.8 // 0.8秒でパーティクルが消える
+        
+        // ライフタイムが0以下になったパーティクルを削除
+        if (particle.life <= 0) {
+          maxPenetrationParticles.splice(i, 1)
+        }
+      }
+      
+      // パーティクルを描画
+      maxPenetrationParticles.forEach(particle => {
+        ctx.globalAlpha = particle.life
+        ctx.beginPath()
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+        // 金色と赤色のグラデーション（貫通力Maxの強力なイメージ）
+        const gradient = ctx.createRadialGradient(
+          particle.x, particle.y, 0,
+          particle.x, particle.y, particle.size
+        )
+        gradient.addColorStop(0, '#FFD700') // ゴールド
+        gradient.addColorStop(0.5, '#FF4500') // オレンジレッド
+        gradient.addColorStop(1, '#DC143C') // クリムゾンレッド
+        ctx.fillStyle = gradient
+        ctx.fill()
+        ctx.closePath()
+      })
+      ctx.globalAlpha = 1.0
+      
+      // オーラエフェクトを描画（ボールの周りに強力な光の輪）
+      if (showMaxPenetrationAura && maxPenetrationParticles.length > 0) {
+        ctx.globalAlpha = 0.6
+        const auraRadius = ball.radius * 5
+        const auraGradient = ctx.createRadialGradient(
+          ball.x, ball.y, ball.radius,
+          ball.x, ball.y, auraRadius
+        )
+        auraGradient.addColorStop(0, 'rgba(255, 215, 0, 0.8)') // ゴールド
+        auraGradient.addColorStop(0.4, 'rgba(255, 69, 0, 0.6)') // オレンジレッド
+        auraGradient.addColorStop(0.7, 'rgba(220, 20, 60, 0.3)') // クリムゾンレッド
+        auraGradient.addColorStop(1, 'rgba(255, 0, 0, 0)') // 透明
+        
+        ctx.beginPath()
+        ctx.arc(ball.x, ball.y, auraRadius, 0, Math.PI * 2)
+        ctx.fillStyle = auraGradient
+        ctx.fill()
+        ctx.closePath()
+        
+        // パーティクルが全て消えたらオーラも消す
+        if (maxPenetrationParticles.length === 0) {
+          showMaxPenetrationAura = false
+        }
+      }
+      ctx.globalAlpha = 1.0
     }
     
     // フレーム間の経過時間を追跡（フレームレート非依存のアニメーション用）
@@ -486,6 +593,14 @@ export default function Game() {
         ball.y = paddle.y - ball.radius
         destroyedBlocksCount = 0 // パドルに当たったらカウントをリセット
         currentPenetrationPower = getPenetrationPower() // パドルに当たった時の貫通力を記録
+        
+        // ボールを弾く度に発射エフェクトを生成
+        createLaunchParticles()
+        
+        // 貫通力がMaxの場合は特別なエフェクトも追加
+        if (currentPenetrationPower === MAX_PENETRATION_POWER) {
+          createMaxPenetrationEffect()
+        }
       }
 
       // 底に落ちた場合
@@ -548,29 +663,30 @@ export default function Game() {
       
       // 発射エフェクトを描画・更新
       updateAndDrawLaunchParticles()
+      
+      // 貫通力Max時のエフェクトを描画・更新
+      updateAndDrawMaxPenetrationEffect()
 
       // パドル幅を更新（常に実行）
       updatePaddleWidth()
 
       // プレイ中のみボールとパドルを動かす
       if (gameStateRef.current === 'playing') {
-        // waiting -> playing に遷移した直後に貫通力を記録し、速度調整とエフェクトを実行
+        // waiting -> playing に遷移した直後に貫通力を記録し、エフェクトを実行
         if (previousGameState === 'waiting') {
           currentPenetrationPower = getPenetrationPower()
           
-          // パドルが最小幅の場合、ボール速度を1.2倍にする
-          if (isAtMinimumWidth) {
-            const speedMultiplier = 1.2
-            ball.speed = baseSpeed * speedMultiplier
-            setBallVelocity(ball.speed)
-          } else {
-            // 通常速度に戻す
-            ball.speed = baseSpeed
-            setBallVelocity(ball.speed)
-          }
+          // 通常速度に設定
+          ball.speed = baseSpeed
+          setBallVelocity(ball.speed)
           
           // 発射エフェクトを生成
           createLaunchParticles()
+          
+          // 貫通力がMaxの場合は特別なエフェクトも追加
+          if (currentPenetrationPower === MAX_PENETRATION_POWER) {
+            createMaxPenetrationEffect()
+          }
           
           previousGameState = 'playing'
         }
