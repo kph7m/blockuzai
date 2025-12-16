@@ -559,7 +559,9 @@ export default function Game() {
           currentPenetrationPower = getPenetrationPower()
           
           // パドルが最小幅の場合、ボール速度を1.2倍にする
-          if (isAtMinimumWidth) {
+          // 注意: isAtMinimumWidthフラグはリリース時にfalseになるため、直接パドル幅をチェック
+          const isLaunchingAtMinWidth = Math.abs(paddle.width - paddleMinWidth) < 0.1
+          if (isLaunchingAtMinWidth) {
             const speedMultiplier = 1.2
             ball.speed = baseSpeed * speedMultiplier
             setBallVelocity(ball.speed)
