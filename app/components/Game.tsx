@@ -113,6 +113,7 @@ export default function Game() {
     let launchParticles: LaunchParticle[] = [] // 発射エフェクトのパーティクル配列
     let showLaunchFlash = false // 発射時のフラッシュエフェクト表示フラグ
     let launchFlashOpacity = 0 // フラッシュの不透明度
+    let launchFlashScale = 1.0 // フラッシュのスケール（貫通力に応じて変化）
     
 
 
@@ -285,16 +286,21 @@ export default function Game() {
     }
     
     // 発射エフェクトのパーティクルを生成
-    function createLaunchParticles() {
-      const particleCount = 30 // パーティクルの数
+    function createLaunchParticles(penetrationPower: number) {
+      // 貫通力に応じてエフェクトの派手さを調整（10-100の範囲を0-1に正規化）
+      const powerRatio = (penetrationPower - MIN_PENETRATION_POWER) / (MAX_PENETRATION_POWER - MIN_PENETRATION_POWER)
+      
+      // 貫通力が高いほどパーティクル数を増やす（30-100個）
+      const particleCount = Math.floor(30 + powerRatio * 70)
       const baseAngle = -Math.PI / 2 // 上向き（90度）
       const spreadAngle = Math.PI / 3 // 60度の範囲に広がる
       
       for (let i = 0; i < particleCount; i++) {
         // ランダムな角度（上方向を中心に扇形に広がる）
         const angle = baseAngle + (Math.random() - 0.5) * spreadAngle
-        // ランダムな速度
-        const speed = (2 + Math.random() * 4) * scaleX
+        // 貫通力が高いほど速度を上げる（1.0-2.5倍）
+        const speedMultiplier = 1.0 + powerRatio * 1.5
+        const speed = (2 + Math.random() * 4) * scaleX * speedMultiplier
         
         launchParticles.push({
           x: ball.x,
@@ -303,13 +309,14 @@ export default function Game() {
           vy: Math.sin(angle) * speed,
           life: 1.0,
           maxLife: 0.5 + Math.random() * 0.5, // 0.5-1.0秒のライフタイム
-          size: (2 + Math.random() * 3) * scaleX
+          size: (2 + Math.random() * 3) * scaleX * (1.0 + powerRatio * 0.5) // 貫通力が高いほどサイズを大きく
         })
       }
       
-      // フラッシュエフェクトを開始
+      // フラッシュエフェクトを開始（貫通力が高いほど強く）
       showLaunchFlash = true
-      launchFlashOpacity = 1.0
+      launchFlashOpacity = 1.0 + powerRatio * 0.5 // 1.0-1.5の範囲
+      launchFlashScale = 1.0 + powerRatio * 1.5 // 1.0-2.5の範囲でスケール
     }
     
 
@@ -367,9 +374,9 @@ export default function Game() {
       
       // フラッシュエフェクトを描画
       if (showLaunchFlash && launchFlashOpacity > 0) {
-        ctx.globalAlpha = launchFlashOpacity
-        // ボールの周りに光の輪を描画
-        const flashRadius = ball.radius * 4
+        ctx.globalAlpha = Math.min(launchFlashOpacity, 1.0) // 不透明度を1.0以下に制限
+        // ボールの周りに光の輪を描画（貫通力に応じてスケール）
+        const flashRadius = ball.radius * 4 * launchFlashScale
         const flashGradient = ctx.createRadialGradient(
           ball.x, ball.y, ball.radius,
           ball.x, ball.y, flashRadius
@@ -495,8 +502,8 @@ export default function Game() {
         destroyedBlocksCount = 0 // パドルに当たったらカウントをリセット
         currentPenetrationPower = getPenetrationPower() // パドルに当たった時の貫通力を記録
         
-        // ボールを弾く度に発射エフェクトを生成
-        createLaunchParticles()
+        // ボールを弾く度に発射エフェクトを生成（現在の貫通力に基づく）
+        createLaunchParticles(currentPenetrationPower)
       }
 
       // 底に落ちた場合
@@ -573,8 +580,8 @@ export default function Game() {
           ball.speed = baseSpeed
           setBallVelocity(ball.speed)
           
-          // 発射エフェクトを生成
-          createLaunchParticles()
+          // 発射エフェクトを生成（現在の貫通力に基づく）
+          createLaunchParticles(currentPenetrationPower)
           
           previousGameState = 'playing'
         }
