@@ -194,16 +194,19 @@ export default function Game() {
     
     // ボールの速度を設定するヘルパー関数（ゼロ除算を回避）
     function setBallVelocity(speed: number) {
+      const speedScaleX = speed * scaleX / Math.min(scaleX, scaleY)
+      const speedScaleY = speed * scaleY / Math.min(scaleX, scaleY)
+      
       if (ball.dx !== 0) {
-        ball.dx = (ball.dx / Math.abs(ball.dx)) * speed * scaleX / Math.min(scaleX, scaleY)
+        ball.dx = (ball.dx / Math.abs(ball.dx)) * speedScaleX
       } else {
-        ball.dx = speed * scaleX / Math.min(scaleX, scaleY)
+        ball.dx = speedScaleX
       }
       
       if (ball.dy !== 0) {
-        ball.dy = (ball.dy / Math.abs(ball.dy)) * speed * scaleY / Math.min(scaleX, scaleY)
+        ball.dy = (ball.dy / Math.abs(ball.dy)) * speedScaleY
       } else {
-        ball.dy = -speed * scaleY / Math.min(scaleX, scaleY) // デフォルトは上向き
+        ball.dy = -speedScaleY // デフォルトは上向き
       }
     }
 
@@ -306,6 +309,10 @@ export default function Game() {
     // フレーム間の経過時間を追跡（フレームレート非依存のアニメーション用）
     let lastFrameTime = performance.now()
     
+    // アニメーション定数
+    const TARGET_FPS = 60 // 基準フレームレート
+    const FLASH_FADE_RATE = 0.05 // フラッシュのフェード速度
+    
     // 発射エフェクトのパーティクルを更新・描画
     function updateAndDrawLaunchParticles() {
       if (!ctx) return
@@ -317,11 +324,11 @@ export default function Game() {
       // パーティクルを更新（効率的に配列を更新）
       for (let i = launchParticles.length - 1; i >= 0; i--) {
         const particle = launchParticles[i]
-        // 位置を更新
-        particle.x += particle.vx * deltaTime * 60 // 60FPSを基準にスケール
-        particle.y += particle.vy * deltaTime * 60
+        // 位置を更新（TARGET_FPSを基準にスケール）
+        particle.x += particle.vx * deltaTime * TARGET_FPS
+        particle.y += particle.vy * deltaTime * TARGET_FPS
         // 重力効果を追加
-        particle.vy += 0.2 * scaleY * deltaTime * 60
+        particle.vy += 0.2 * scaleY * deltaTime * TARGET_FPS
         // ライフタイムを減少
         particle.life -= deltaTime / particle.maxLife
         
@@ -371,7 +378,7 @@ export default function Game() {
         ctx.closePath()
         
         // フラッシュを徐々に消す
-        launchFlashOpacity -= 0.05
+        launchFlashOpacity -= FLASH_FADE_RATE
         if (launchFlashOpacity <= 0) {
           showLaunchFlash = false
         }
