@@ -97,7 +97,6 @@ export default function Game() {
     let isPressing = false // タッチ/マウスダウン状態
     const shrinkDuration = 1500 // 縮小アニメーション時間（ミリ秒）
     const expandDuration = 500 // 拡大アニメーション時間（ミリ秒）
-    const minWidthTolerance = 0.1 // 最小幅判定の許容誤差（ピクセル）
     let lastAnimationTime = performance.now() // 最後のアニメーション更新時刻
     let isAtMinimumWidth = false // パドルが最小幅かどうか
     
@@ -555,22 +554,13 @@ export default function Game() {
 
       // プレイ中のみボールとパドルを動かす
       if (gameStateRef.current === 'playing') {
-        // waiting -> playing に遷移した直後に貫通力を記録し、速度調整とエフェクトを実行
+        // waiting -> playing に遷移した直後に貫通力を記録し、エフェクトを実行
         if (previousGameState === 'waiting') {
           currentPenetrationPower = getPenetrationPower()
           
-          // パドルが最小幅の場合、ボール速度を1.2倍にする
-          // 注意: isAtMinimumWidthフラグはリリース時にfalseになるため、直接パドル幅をチェック
-          const isLaunchingAtMinWidth = Math.abs(paddle.width - paddleMinWidth) < minWidthTolerance
-          if (isLaunchingAtMinWidth) {
-            const speedMultiplier = 1.2
-            ball.speed = baseSpeed * speedMultiplier
-            setBallVelocity(ball.speed)
-          } else {
-            // 通常速度に戻す
-            ball.speed = baseSpeed
-            setBallVelocity(ball.speed)
-          }
+          // 通常速度に設定
+          ball.speed = baseSpeed
+          setBallVelocity(ball.speed)
           
           // 発射エフェクトを生成
           createLaunchParticles()
