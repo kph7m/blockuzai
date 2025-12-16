@@ -374,8 +374,12 @@ export default function Game() {
               destroyedBlocksCount++
 
               // 貫通力の分だけブロックを破壊したら跳ね返る
+              // ただし、下向きに移動している場合（ball.dy > 0）は跳ね返らない
               if (destroyedBlocksCount >= currentPenetrationPower) {
-                ball.dy *= -1
+                // 上向きに移動している場合のみ跳ね返る
+                if (ball.dy < 0) {
+                  ball.dy *= -1
+                }
                 destroyedBlocksCount = 0
               }
 
