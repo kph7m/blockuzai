@@ -530,7 +530,7 @@ export default function Game() {
         // 速度を角度に応じて設定
         const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy)
         ball.dx = Math.cos(angle) * speed
-        ball.dy = Math.sin(angle) * speed // 角度計算で既に上向きが保証されている
+        ball.dy = -Math.abs(Math.sin(angle)) * speed // Canvas座標系では上向きは負の値
         
         // ボールを弾く度に発射エフェクトを生成（現在の貫通力に基づく）
         createLaunchParticles(currentPenetrationPower)
