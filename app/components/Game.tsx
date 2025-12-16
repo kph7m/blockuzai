@@ -224,8 +224,8 @@ export default function Game() {
       // 角丸の半径
       const borderRadius = 8 * scaleY
       
-      // カーブの深さ（パドルの高さの半分程度、下方向にカーブ）
-      const curveDepth = paddle.height * 0.4
+      // カーブの高さ（パドルの高さの半分程度、上方向にカーブ）
+      const curveHeight = paddle.height * 0.4
       
       // グラデーションを作成（ピンク系の可愛い色）
       const gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.height)
@@ -268,8 +268,8 @@ export default function Game() {
       ctx.lineTo(paddle.x + paddle.width, paddle.y + borderRadius)
       // 右上の角丸（カーブの開始点）
       ctx.quadraticCurveTo(paddle.x + paddle.width, paddle.y, paddle.x + paddle.width - borderRadius, paddle.y)
-      // 上辺を緩やかなカーブで描画（二次ベジェ曲線で下に凸）
-      ctx.quadraticCurveTo(paddle.x + paddle.width / 2, paddle.y + curveDepth, paddle.x + borderRadius, paddle.y)
+      // 上辺を緩やかなカーブで描画（二次ベジェ曲線で上に凸）
+      ctx.quadraticCurveTo(paddle.x + paddle.width / 2, paddle.y - curveHeight, paddle.x + borderRadius, paddle.y)
       // 左上の角丸（カーブの終了点）
       ctx.quadraticCurveTo(paddle.x, paddle.y, paddle.x, paddle.y + borderRadius)
       ctx.closePath()
