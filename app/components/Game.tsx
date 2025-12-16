@@ -141,15 +141,19 @@ export default function Game() {
     // ブロックがCanvasの縦方向に占める割合
     const BLOCKS_FILL_RATIO = 0.7
     
+    // 貫通力の定数
+    const MIN_PENETRATION_POWER = 10 // 最小貫通力（パドルが最大幅の時）
+    const MAX_PENETRATION_POWER = 100 // 最大貫通力（パドルが最小幅の時）
+    
     // 貫通力の計算（パドル幅に応じて動的に変化）
     // 最大幅: 10, 最小幅: 100
     function getPenetrationPower(): number {
       // パドル幅の範囲を0-1に正規化
       const widthRange = paddleDefaultWidth - paddleMinWidth
-      if (widthRange === 0) return 10 // 安全性チェック: 除算エラーを防ぐ
+      if (widthRange === 0) return MIN_PENETRATION_POWER // 安全性チェック: 除算エラーを防ぐ
       const widthRatio = (paddle.width - paddleMinWidth) / widthRange
       // 逆比例: 幅が大きいほど貫通力が小さく、幅が小さいほど貫通力が大きい
-      return Math.round(10 + (1 - widthRatio) * 90)
+      return Math.round(MIN_PENETRATION_POWER + (1 - widthRatio) * (MAX_PENETRATION_POWER - MIN_PENETRATION_POWER))
     }
     
     // ブロック
@@ -594,7 +598,7 @@ export default function Game() {
         createLaunchParticles()
         
         // 貫通力がMaxの場合は特別なエフェクトも追加
-        if (currentPenetrationPower === 100) {
+        if (currentPenetrationPower === MAX_PENETRATION_POWER) {
           createMaxPenetrationEffect()
         }
       }
@@ -680,7 +684,7 @@ export default function Game() {
           createLaunchParticles()
           
           // 貫通力がMaxの場合は特別なエフェクトも追加
-          if (currentPenetrationPower === 100) {
+          if (currentPenetrationPower === MAX_PENETRATION_POWER) {
             createMaxPenetrationEffect()
           }
           
