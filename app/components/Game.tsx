@@ -118,7 +118,9 @@ export default function Game() {
     // 最大幅: 10, 最小幅: 100
     function getPenetrationPower(): number {
       // パドル幅の範囲を0-1に正規化
-      const widthRatio = (paddle.width - paddleMinWidth) / (paddleDefaultWidth - paddleMinWidth)
+      const widthRange = paddleDefaultWidth - paddleMinWidth
+      if (widthRange === 0) return 10 // 安全性チェック: 除算エラーを防ぐ
+      const widthRatio = (paddle.width - paddleMinWidth) / widthRange
       // 逆比例: 幅が大きいほど貫通力が小さく、幅が小さいほど貫通力が大きい
       return Math.round(10 + (1 - widthRatio) * 90)
     }
@@ -353,6 +355,9 @@ export default function Game() {
 
     // ブロックとの衝突判定
     function checkBrickCollision() {
+      // 貫通力を計算（ループ外で1回のみ計算してパフォーマンス向上）
+      const penetrationPower = getPenetrationPower()
+      
       bricks.forEach(row => {
         row.forEach(brick => {
           if (brick.visible) {
@@ -365,7 +370,6 @@ export default function Game() {
               destroyedBlocksCount++
 
               // 貫通力の分だけブロックを破壊したら跳ね返る
-              const penetrationPower = getPenetrationPower()
               if (destroyedBlocksCount >= penetrationPower) {
                 ball.dy *= -1
                 destroyedBlocksCount = 0
