@@ -114,8 +114,14 @@ export default function Game() {
     // ブロックがCanvasの縦方向に占める割合
     const BLOCKS_FILL_RATIO = 0.7
     
-    // ボールが跳ね返るまでに必要な破壊ブロック数
-    const BLOCKS_TO_DESTROY_BEFORE_BOUNCE = 70
+    // 貫通力の計算（パドル幅に応じて動的に変化）
+    // 最大幅: 10, 最小幅: 100
+    function getPenetrationPower(): number {
+      // パドル幅の範囲を0-1に正規化
+      const widthRatio = (paddle.width - paddleMinWidth) / (paddleDefaultWidth - paddleMinWidth)
+      // 逆比例: 幅が大きいほど貫通力が小さく、幅が小さいほど貫通力が大きい
+      return Math.round(10 + (1 - widthRatio) * 90)
+    }
     
     // ブロック
     const brickInfo = {
@@ -358,8 +364,9 @@ export default function Game() {
               remainingBricks--
               destroyedBlocksCount++
 
-              // 70個破壊したら跳ね返る
-              if (destroyedBlocksCount >= BLOCKS_TO_DESTROY_BEFORE_BOUNCE) {
+              // 貫通力の分だけブロックを破壊したら跳ね返る
+              const penetrationPower = getPenetrationPower()
+              if (destroyedBlocksCount >= penetrationPower) {
                 ball.dy *= -1
                 destroyedBlocksCount = 0
               }
