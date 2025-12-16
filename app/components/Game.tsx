@@ -224,6 +224,9 @@ export default function Game() {
       // 角丸の半径
       const borderRadius = 8 * scaleY
       
+      // カーブの高さ（パドルの高さの半分程度、上方向にカーブ）
+      const curveHeight = paddle.height * 0.4
+      
       // グラデーションを作成（ピンク系の可愛い色）
       const gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.height)
       
@@ -252,17 +255,23 @@ export default function Game() {
       ctx.shadowOffsetX = 0
       ctx.shadowOffsetY = 4 * scaleY
       
-      // 角丸四角形を描画
+      // 緩やかなカーブのパドルを描画
       ctx.beginPath()
-      ctx.moveTo(paddle.x + borderRadius, paddle.y)
-      ctx.lineTo(paddle.x + paddle.width - borderRadius, paddle.y)
-      ctx.quadraticCurveTo(paddle.x + paddle.width, paddle.y, paddle.x + paddle.width, paddle.y + borderRadius)
-      ctx.lineTo(paddle.x + paddle.width, paddle.y + paddle.height - borderRadius)
-      ctx.quadraticCurveTo(paddle.x + paddle.width, paddle.y + paddle.height, paddle.x + paddle.width - borderRadius, paddle.y + paddle.height)
-      ctx.lineTo(paddle.x + borderRadius, paddle.y + paddle.height)
-      ctx.quadraticCurveTo(paddle.x, paddle.y + paddle.height, paddle.x, paddle.y + paddle.height - borderRadius)
-      ctx.lineTo(paddle.x, paddle.y + borderRadius)
-      ctx.quadraticCurveTo(paddle.x, paddle.y, paddle.x + borderRadius, paddle.y)
+      // 左下の角丸から開始
+      ctx.moveTo(paddle.x, paddle.y + paddle.height - borderRadius)
+      ctx.quadraticCurveTo(paddle.x, paddle.y + paddle.height, paddle.x + borderRadius, paddle.y + paddle.height)
+      // 下辺
+      ctx.lineTo(paddle.x + paddle.width - borderRadius, paddle.y + paddle.height)
+      // 右下の角丸
+      ctx.quadraticCurveTo(paddle.x + paddle.width, paddle.y + paddle.height, paddle.x + paddle.width, paddle.y + paddle.height - borderRadius)
+      // 右辺
+      ctx.lineTo(paddle.x + paddle.width, paddle.y + borderRadius)
+      // 右上の角丸（カーブの開始点）
+      ctx.quadraticCurveTo(paddle.x + paddle.width, paddle.y, paddle.x + paddle.width - borderRadius, paddle.y)
+      // 上辺を緩やかなカーブで描画（二次ベジェ曲線で上に凸）
+      ctx.quadraticCurveTo(paddle.x + paddle.width / 2, paddle.y - curveHeight, paddle.x + borderRadius, paddle.y)
+      // 左上の角丸（カーブの終了点）
+      ctx.quadraticCurveTo(paddle.x, paddle.y, paddle.x, paddle.y + borderRadius)
       ctx.closePath()
       
       ctx.fillStyle = gradient
