@@ -536,7 +536,7 @@ export default function Game() {
         // カーブに沿った角度になるように調整
         const baseAngle = Math.PI / 2 // 90度（真上）
         const maxAngleDeviation = Math.PI / 3 // ±60度の偏差範囲（左端: 30度、右端: 150度）
-        const angle = baseAngle + hitPosition * maxAngleDeviation
+        const angle = baseAngle - hitPosition * maxAngleDeviation // hitPositionを反転（左側で左向き、右側で右向き）
         
         // 速度を角度に応じて設定（更新された速度を使用）
         ball.dx = Math.cos(angle) * ball.speed
