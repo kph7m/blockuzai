@@ -233,11 +233,11 @@ export default function Game() {
       const borderRadius = 8 * scaleY
       
       // カーブの高さ（貫通力に応じて変化：貫通力が高いほどカーブが小さくなる）
-      // 貫通力10（最小）の時：パドル高さの2.5倍のカーブ
+      // 貫通力10（最小）の時：パドル高さの4.0倍のカーブ
       // 貫通力100（最大）の時：カーブなし（平ら）
       const penetrationPower = getPenetrationPower()
       const powerRatio = (penetrationPower - MIN_PENETRATION_POWER) / (MAX_PENETRATION_POWER - MIN_PENETRATION_POWER)
-      const maxCurveHeight = paddle.height * 2.5 // 最大カーブ高さ
+      const maxCurveHeight = paddle.height * 4.0 // 最大カーブ高さ
       const minCurveHeight = 0 // 最小カーブ高さ（貫通力最大時は平ら）
       const curveHeight = maxCurveHeight - powerRatio * (maxCurveHeight - minCurveHeight)
       
