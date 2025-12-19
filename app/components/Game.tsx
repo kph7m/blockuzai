@@ -115,19 +115,6 @@ export default function Game() {
     let launchFlashOpacity = 0 // フラッシュの不透明度
     let launchFlashScale = 1.0 // フラッシュのスケール（貫通力に応じて変化）
     
-    // ブロック破壊エフェクト用の変数
-    type BlockParticle = {
-      x: number
-      y: number
-      vx: number
-      vy: number
-      life: number
-      maxLife: number
-      size: number
-      color: string
-    }
-    let blockParticles: BlockParticle[] = [] // ブロック破壊エフェクトのパーティクル配列
-    
 
 
     // ボール（パドルの上に配置）
@@ -355,40 +342,6 @@ export default function Game() {
       launchFlashScale = 1.0 + powerRatio * 1.5 // 1.0-2.5の範囲でスケール
     }
     
-    // ブロック破壊エフェクトのパーティクルを生成
-    function createBlockParticles(blockX: number, blockY: number, blockColor: string, penetrationPower: number) {
-      // 貫通力に応じてエフェクトの派手さを調整（10-100の範囲を0-1に正規化）
-      const powerRatio = (penetrationPower - MIN_PENETRATION_POWER) / (MAX_PENETRATION_POWER - MIN_PENETRATION_POWER)
-      
-      // 貫通力が高いほどパーティクル数を増やす（15-50個）
-      const particleCount = Math.floor(15 + powerRatio * 35)
-      
-      // ブロックの中心座標を計算
-      const centerX = blockX + brickInfo.width / 2
-      const centerY = blockY + brickInfo.height / 2
-      
-      for (let i = 0; i < particleCount; i++) {
-        // ランダムな角度（全方向に飛び散る）
-        const angle = Math.random() * Math.PI * 2
-        // 貫通力が高いほど速度を上げる（1.5-3.0倍）
-        const speedMultiplier = 1.5 + powerRatio * 1.5
-        const speed = (1 + Math.random() * 3) * scaleX * speedMultiplier
-        
-        blockParticles.push({
-          x: centerX,
-          y: centerY,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          life: 1.0,
-          maxLife: 0.5 + Math.random() * 0.5, // 0.5-1.0秒のライフタイム
-          size: (1.5 + Math.random() * 2.5) * scaleX * (1.0 + powerRatio * 0.7), // 貫通力が高いほどサイズを大きく
-          color: blockColor
-        })
-      }
-    }
-    
-
-
     // フレーム間の経過時間を追跡（フレームレート非依存のアニメーション用）
     let lastFrameTime = performance.now()
     
@@ -466,42 +419,6 @@ export default function Game() {
           showLaunchFlash = false
         }
       }
-      ctx.globalAlpha = 1.0
-    }
-    
-    // ブロック破壊エフェクトのパーティクルを更新・描画
-    function updateAndDrawBlockParticles() {
-      if (!ctx) return
-      
-      const currentTime = performance.now()
-      const deltaTime = (currentTime - lastFrameTime) / 1000 // 秒単位に変換
-      
-      // パーティクルを更新（効率的に配列を更新）
-      for (let i = blockParticles.length - 1; i >= 0; i--) {
-        const particle = blockParticles[i]
-        // 位置を更新（TARGET_FPSを基準にスケール）
-        particle.x += particle.vx * deltaTime * TARGET_FPS
-        particle.y += particle.vy * deltaTime * TARGET_FPS
-        // 重力効果を追加
-        particle.vy += 0.3 * scaleY * deltaTime * TARGET_FPS
-        // ライフタイムを減少
-        particle.life -= deltaTime / particle.maxLife
-        
-        // ライフタイムが0以下になったパーティクルを削除
-        if (particle.life <= 0) {
-          blockParticles.splice(i, 1)
-        }
-      }
-      
-      // パーティクルを描画
-      blockParticles.forEach(particle => {
-        ctx.globalAlpha = particle.life
-        ctx.beginPath()
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
-        ctx.fillStyle = particle.color
-        ctx.fill()
-        ctx.closePath()
-      })
       ctx.globalAlpha = 1.0
     }
 
@@ -654,9 +571,6 @@ export default function Game() {
               brick.visible = false
               remainingBricks--
               destroyedBlocksCount++
-              
-              // ブロック破壊エフェクトを生成（現在の貫通力に基づく）
-              createBlockParticles(brick.x, brick.y, brick.color, currentPenetrationPower)
 
               // 貫通力の分だけブロックを破壊したら跳ね返る
               // ただし、下向きに移動している場合（ball.dy > 0）は跳ね返らず、上向きに移動している場合（ball.dy < 0）のみ跳ね返る
@@ -690,9 +604,6 @@ export default function Game() {
       
       // 発射エフェクトを描画・更新
       updateAndDrawLaunchParticles()
-      
-      // ブロック破壊エフェクトを描画・更新
-      updateAndDrawBlockParticles()
 
       // パドル幅を更新（常に実行）
       updatePaddleWidth()
